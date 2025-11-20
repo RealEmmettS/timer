@@ -4,7 +4,7 @@ import { useTimer } from '@/context/TimerContext';
 import { TimerDisplay } from '@/components/TimerDisplay';
 import { MotionButton } from '@/components/shared/MotionButton';
 import { Play, Pause, RotateCcw, Plus, Minus } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { playComplete } from '@/utils/audio';
 
 const PRESETS = [

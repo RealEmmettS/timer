@@ -16,15 +16,15 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  
+
   --color-bauhaus-red: var(--bauhaus-red);
   --color-bauhaus-blue: var(--bauhaus-blue);
   --color-bauhaus-yellow: var(--bauhaus-yellow);
   --color-bauhaus-dark: var(--bauhaus-dark);
   --color-bauhaus-light: var(--bauhaus-light);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-clarwe-mono);
+  --font-mono: var(--font-clarwe-mono);
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,7 +1,6 @@
 'use client';
 
 import { motion, HTMLMotionProps } from 'framer-motion';
-import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 interface MotionButtonProps extends HTMLMotionProps<"button"> {
@@ -36,4 +35,3 @@ export function MotionButton({ className, variant = 'primary', size = 'md', chil
     </motion.button>
   );
 }
-

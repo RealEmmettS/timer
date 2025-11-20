@@ -33,3 +33,10 @@ All notable changes to the "Bauhaus Timer" project will be documented in this fi
 ### Fixed
 - N/A (Initial Release)
 
+## [2025-11-20]
+
+### Changed
+- Swapped global typography to the local ID Clarwe Mono font (via `next/font/local`, woff2/woff) and now apply it to both sans and mono slots for consistent UI text.
+
+### Fixed
+- Cleared ESLint issues (dark-mode preference sync without in-effect state, TimerContext reset immutability, typed AudioContext fallback, unused imports) to keep CI clean.

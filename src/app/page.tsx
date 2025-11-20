@@ -13,22 +13,28 @@ import { MotionButton } from "@/components/shared/MotionButton";
 
 export default function Home() {
   const { activeMode, setActiveMode } = useTimer();
-  const [isDark, setIsDark] = useState(false);
+  const getPrefersDark = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  const [isDark, setIsDark] = useState(getPrefersDark);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  // Toggle dark mode
+  // Sync with system preference changes
   useEffect(() => {
-    // Check system preference on mount
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setIsDark(true);
-    }
+    if (!window.matchMedia) return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (event: MediaQueryListEvent) => setIsDark(event.matches);
+    media.addEventListener("change", handler);
+    return () => media.removeEventListener("change", handler);
   }, []);
 
   useEffect(() => {
     if (isDark) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, [isDark]);
 

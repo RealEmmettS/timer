@@ -62,8 +62,8 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     setLaps([]);
   };
   
-  const stopwatchReset = stopwatchEngine.reset;
-  stopwatchEngine.reset = () => {
+  const { reset: stopwatchReset, ...restStopwatch } = stopwatchEngine;
+  const resetStopwatchWithLaps = () => {
     stopwatchReset();
     clearLaps();
   };
@@ -101,7 +101,8 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       activeMode,
       setActiveMode,
       stopwatch: {
-        ...stopwatchEngine,
+        ...restStopwatch,
+        reset: resetStopwatchWithLaps,
         laps,
         addLap,
         clearLaps
@@ -123,4 +124,3 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     </TimerContext.Provider>
   );
 }
-

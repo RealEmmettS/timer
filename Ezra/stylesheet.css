@@ -1,0 +1,140 @@
+@font-face {
+    font-family: 'Ezra Med';
+    src: url('Ezra-MediumItalic.woff2') format('woff2'),
+        url('Ezra-MediumItalic.woff') format('woff'),
+        url('Ezra-MediumItalic.svg#Ezra-MediumItalic') format('svg');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-Italic.woff2') format('woff2'),
+        url('Ezra-Italic.woff') format('woff'),
+        url('Ezra-Italic.svg#Ezra-Italic') format('svg');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra SemBd';
+    src: url('Ezra-SemiBold.woff2') format('woff2'),
+        url('Ezra-SemiBold.woff') format('woff'),
+        url('Ezra-SemiBold.svg#Ezra-SemiBold') format('svg');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra ExtBd';
+    src: url('Ezra-ExtraBoldItalic.woff2') format('woff2'),
+        url('Ezra-ExtraBoldItalic.woff') format('woff'),
+        url('Ezra-ExtraBoldItalic.svg#Ezra-ExtraBoldItalic') format('svg');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-Black.woff2') format('woff2'),
+        url('Ezra-Black.woff') format('woff'),
+        url('Ezra-Black.svg#Ezra-Black') format('svg');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-Regular.woff2') format('woff2'),
+        url('Ezra-Regular.woff') format('woff'),
+        url('Ezra-Regular.svg#Ezra-Regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra Med';
+    src: url('Ezra-Medium.woff2') format('woff2'),
+        url('Ezra-Medium.woff') format('woff'),
+        url('Ezra-Medium.svg#Ezra-Medium') format('svg');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra SemBd';
+    src: url('Ezra-SemiBoldItalic.woff2') format('woff2'),
+        url('Ezra-SemiBoldItalic.woff') format('woff'),
+        url('Ezra-SemiBoldItalic.svg#Ezra-SemiBoldItalic') format('svg');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-Light.woff2') format('woff2'),
+        url('Ezra-Light.woff') format('woff'),
+        url('Ezra-Light.svg#Ezra-Light') format('svg');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-LightItalic.woff2') format('woff2'),
+        url('Ezra-LightItalic.woff') format('woff'),
+        url('Ezra-LightItalic.svg#Ezra-LightItalic') format('svg');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-BlackItalic.woff2') format('woff2'),
+        url('Ezra-BlackItalic.woff') format('woff'),
+        url('Ezra-BlackItalic.svg#Ezra-BlackItalic') format('svg');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-BoldItalic.woff2') format('woff2'),
+        url('Ezra-BoldItalic.woff') format('woff'),
+        url('Ezra-BoldItalic.svg#Ezra-BoldItalic') format('svg');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra';
+    src: url('Ezra-Bold.woff2') format('woff2'),
+        url('Ezra-Bold.woff') format('woff'),
+        url('Ezra-Bold.svg#Ezra-Bold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Ezra ExtBd';
+    src: url('Ezra-ExtraBold.woff2') format('woff2'),
+        url('Ezra-ExtraBold.woff') format('woff'),
+        url('Ezra-ExtraBold.svg#Ezra-ExtraBold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
