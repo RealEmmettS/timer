@@ -48,68 +48,82 @@ export default function CountdownView() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Timer Display */}
-      <div className="w-full flex justify-center">
+    <div className="w-full max-w-6xl mx-auto h-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 animate-in fade-in slide-in-from-bottom-4 duration-500 p-4">
+      {/* Main Section: Timer & Primary Controls */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full">
          <TimerDisplay 
             ms={displayTime} 
             totalMs={countdown.duration} 
             mode="countdown" 
             overtime={isOvertime}
          />
-      </div>
 
-      {/* Controls */}
-      {/* Added relative z-20 to ensure controls sit above ring if it somehow overlaps, but main spacing fix in TimerDisplay handles layout flow. */}
-      <div className="flex items-center justify-center gap-6 relative z-20 mt-4">
-        <MotionButton 
-          variant="ghost" 
-          size="icon" 
-          onClick={countdown.reset} 
-          disabled={countdown.elapsed === 0}
-          title="Reset"
-        >
-           <RotateCcw className="w-6 h-6" />
-        </MotionButton>
+         {/* Controls */}
+         <div className="flex items-center justify-center gap-6 relative z-20 mt-4">
+            <MotionButton 
+              variant="ghost" 
+              size="icon" 
+              onClick={countdown.reset} 
+              disabled={countdown.elapsed === 0}
+              title="Reset"
+            >
+               <RotateCcw className="w-6 h-6" />
+            </MotionButton>
 
-        {countdown.isRunning ? (
-          <MotionButton variant="secondary" size="lg" className="w-40" onClick={countdown.pause}>
-            <Pause className="mr-2 w-5 h-5 fill-current" /> Pause
-          </MotionButton>
-        ) : (
-          <MotionButton variant="primary" size="lg" className="w-40" onClick={countdown.start}>
-            <Play className="mr-2 w-5 h-5 fill-current" /> {countdown.elapsed > 0 ? 'Resume' : 'Start'}
-          </MotionButton>
-        )}
-        
-        {/* Placeholder to balance layout if reset button is on left */}
-        <div className="w-12 h-12" /> 
-      </div>
-
-      {/* Presets */}
-      <div className="w-full space-y-4 pt-8 border-t border-foreground/10">
-          <p className="text-xs font-mono text-center uppercase tracking-widest opacity-50">Presets</p>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 w-full">
-            {PRESETS.map(preset => (
-              <MotionButton 
-                key={preset.label} 
-                variant="secondary" 
-                size="sm"
-                onClick={() => handlePreset(preset.value)}
-                className="font-normal"
-              >
-                {preset.label}
+            {countdown.isRunning ? (
+              <MotionButton variant="secondary" size="lg" className="w-40" onClick={countdown.pause}>
+                <Pause className="mr-2 w-5 h-5 fill-current" /> Pause
               </MotionButton>
-            ))}
+            ) : (
+              <MotionButton variant="primary" size="lg" className="w-40" onClick={countdown.start}>
+                <Play className="mr-2 w-5 h-5 fill-current" /> {countdown.elapsed > 0 ? 'Resume' : 'Start'}
+              </MotionButton>
+            )}
+            
+            {/* Placeholder to balance layout if reset button is on left */}
+            <div className="w-12 h-12" /> 
           </div>
       </div>
-      
-       {/* Adjustments */}
-       <div className="flex gap-4 justify-center">
-          <MotionButton size="sm" variant="ghost" onClick={() => adjustTime(-60000)} disabled={countdown.isRunning}><Minus className="w-3 h-3 mr-1"/> 1m</MotionButton>
-          <MotionButton size="sm" variant="ghost" onClick={() => adjustTime(60000)} disabled={countdown.isRunning}><Plus className="w-3 h-3 mr-1"/> 1m</MotionButton>
-          <MotionButton size="sm" variant="ghost" onClick={() => adjustTime(5 * 60000)} disabled={countdown.isRunning}><Plus className="w-3 h-3 mr-1"/> 5m</MotionButton>
-       </div>
+
+      {/* Side Section: Configuration */}
+      <div className="w-full lg:w-64 flex flex-col gap-8 z-20 lg:border-l-2 lg:border-foreground/10 lg:pl-8 lg:self-center">
+          
+          {/* Presets */}
+          <div className="flex flex-col gap-3 w-full">
+              <p className="text-xs font-mono uppercase tracking-widest opacity-50 text-center lg:text-left">Presets</p>
+              <div className="grid grid-cols-3 lg:grid-cols-2 gap-3">
+                {PRESETS.map(preset => (
+                  <MotionButton 
+                    key={preset.label} 
+                    variant="secondary" 
+                    size="sm"
+                    onClick={() => handlePreset(preset.value)}
+                    className="font-normal"
+                  >
+                    {preset.label}
+                  </MotionButton>
+                ))}
+              </div>
+          </div>
+          
+           {/* Adjustments */}
+           <div className="flex flex-col gap-3 w-full pt-4 border-t border-foreground/10 lg:border-none lg:pt-0">
+              <p className="text-xs font-mono uppercase tracking-widest opacity-50 text-center lg:text-left">Adjust</p>
+               <div className="flex flex-col gap-3">
+                   <div className="flex gap-2 w-full">
+                      <MotionButton size="sm" variant="ghost" className="flex-1" onClick={() => adjustTime(-60000)} disabled={countdown.isRunning}>
+                        <Minus className="w-3 h-3 mr-1"/> 1m
+                      </MotionButton>
+                      <MotionButton size="sm" variant="ghost" className="flex-1" onClick={() => adjustTime(60000)} disabled={countdown.isRunning}>
+                        <Plus className="w-3 h-3 mr-1"/> 1m
+                      </MotionButton>
+                   </div>
+                   <MotionButton size="sm" variant="ghost" className="w-full" onClick={() => adjustTime(5 * 60000)} disabled={countdown.isRunning}>
+                      <Plus className="w-3 h-3 mr-1"/> 5m
+                   </MotionButton>
+               </div>
+           </div>
+      </div>
     </div>
   );
 }
