@@ -13,13 +13,18 @@ export function ProgressRing({ progress, size = 300, strokeWidth = 12, color = "
   // Ensure progress is between 0 and 1
   const clampedProgress = Math.min(Math.max(progress, 0), 1);
   
-  const radius = (size - strokeWidth) / 2;
+  // Ensure radius is positive
+  const radius = Math.max(0, (size - strokeWidth) / 2);
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - clampedProgress * circumference;
 
   return (
-    <div className="relative flex items-center justify-center pointer-events-none">
-      <svg width={size} height={size} className="transform -rotate-90">
+    <motion.div 
+      className="relative flex items-center justify-center pointer-events-none"
+      animate={{ width: size, height: size }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <svg width={size} height={size} className="transform -rotate-90 transition-all duration-300">
         {/* Background Track */}
         <circle
           stroke="var(--foreground)"
@@ -48,7 +53,6 @@ export function ProgressRing({ progress, size = 300, strokeWidth = 12, color = "
           }}
         />
       </svg>
-    </div>
+    </motion.div>
   );
 }
-
