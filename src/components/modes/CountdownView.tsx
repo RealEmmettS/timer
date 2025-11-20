@@ -60,7 +60,8 @@ export default function CountdownView() {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-center gap-6">
+      {/* Added relative z-20 to ensure controls sit above ring if it somehow overlaps, but main spacing fix in TimerDisplay handles layout flow. */}
+      <div className="flex items-center justify-center gap-6 relative z-20 mt-4">
         <MotionButton 
           variant="ghost" 
           size="icon" 
@@ -81,13 +82,11 @@ export default function CountdownView() {
           </MotionButton>
         )}
         
-        {/* Placeholder for future features or just spacing */}
-        <div className="w-12" /> 
+        {/* Placeholder to balance layout if reset button is on left */}
+        <div className="w-12 h-12" /> 
       </div>
 
-      {/* Presets - Only visible if not running to reduce clutter? Or keep for quick switch? */}
-      {/* Keeping distinct section */}
-      
+      {/* Presets */}
       <div className="w-full space-y-4 pt-8 border-t border-foreground/10">
           <p className="text-xs font-mono text-center uppercase tracking-widest opacity-50">Presets</p>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 w-full">

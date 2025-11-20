@@ -60,41 +60,6 @@ export function TimerDisplay({ ms, totalMs = 0, mode = 'countdown', showMs = fal
     }
   }, [hasHours, hasMs]); // Recalculate when layout might change significantly
 
-  // Calculate dynamic size based on viewport or parent container
-  // We'll use a base size that scales, plus padding
-  // A simple approach is to ensure the ring is always X% larger than the text width
-  // But typically for a timer, we want a consistent large size that fits the container.
-  // Let's scale the ring based on the text size with generous padding.
-  
-  // Base size on text width + padding
-  // If text width is 300px, ring might be 400px.
-  // We need a minimum size though.
-  
-  // Actually, let's use a large responsive unit for the ring and center the text within it.
-  // The user asked for increased spacing and responsiveness.
-  
-  // Let's make the ring size relative to the text content but ensuring a minimum gap.
-  // We can use a constant padding factor.
-  
-  // Default large size
-  const baseSize = 340; 
-  // If text is very wide (e.g. hours + ms), we might need more space? 
-  // Usually the font size shrinks responsively, so the ring can stay fixed relative to container width?
-  // The user request: "when timer text changes, the circle space changes accordingly" implies the circle grows/shrinks or fits the text.
-  
-  // Let's use a container query or just fit-content logic? 
-  // SVG needs explicit pixel size for stroke calculations usually, or viewbox.
-  
-  // Better approach: 
-  // 1. Render text.
-  // 2. Calculate text width (approximate or measured).
-  // 3. Set ring diameter = textWidth * 1.5 (generous spacing).
-  
-  // We will stick to a responsive container approach where the ring defines the constraint 
-  // and the text fits inside with padding. 
-  // OR: The ring wraps the text.
-  
-  // Let's try wrapping the text with the ring based on the `textSize` state if available, otherwise default.
   const ringPadding = 60; // Space between text and ring
   const minRingSize = 320;
   
@@ -106,11 +71,11 @@ export function TimerDisplay({ ms, totalMs = 0, mode = 'countdown', showMs = fal
   // Use measured width if available, else approximation
   const targetSize = Math.max(minRingSize, (textSize.width || approxWidth) + ringPadding * 2);
   
-  // Smooth out size changes?
-  // For now, just pass direct size.
-
   return (
-    <div className="relative flex flex-col items-center justify-center py-12 w-full max-w-xl mx-auto">
+    <div 
+        className="relative flex flex-col items-center justify-center w-full max-w-xl mx-auto transition-all duration-300 ease-out"
+        style={{ minHeight: targetSize + 40, marginTop: '2rem', marginBottom: '2rem' }} 
+    >
       {/* Ring Container - Absolute centered but sized to content */}
       <div 
         className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-out"

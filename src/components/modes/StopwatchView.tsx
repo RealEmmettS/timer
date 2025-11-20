@@ -27,7 +27,7 @@ export default function StopwatchView() {
         />
       </div>
 
-      <div className="flex items-center justify-center gap-6">
+      <div className="flex items-center justify-center gap-6 relative z-20 mt-4">
          <MotionButton 
           variant="ghost" 
           size="icon" 
@@ -92,4 +92,3 @@ export default function StopwatchView() {
     </div>
   );
 }
-
