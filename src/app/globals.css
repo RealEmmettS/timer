@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  /* Base */
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Bauhaus Palette */
+  --bauhaus-red: #FF4F4F;
+  --bauhaus-blue: #2D5BFF;
+  --bauhaus-yellow: #FFD600;
+  --bauhaus-dark: #121212;
+  --bauhaus-light: #F4F4F0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-bauhaus-red: var(--bauhaus-red);
+  --color-bauhaus-blue: var(--bauhaus-blue);
+  --color-bauhaus-yellow: var(--bauhaus-yellow);
+  --color-bauhaus-dark: var(--bauhaus-dark);
+  --color-bauhaus-light: var(--bauhaus-light);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow: hidden; /* Prevent scroll for app-like feel */
+}
+
+/* Utility classes for interactive elements */
+@layer utilities {
+  .bauhaus-shadow {
+    box-shadow: 4px 4px 0px 0px var(--foreground);
+  }
+  .bauhaus-shadow-sm {
+    box-shadow: 2px 2px 0px 0px var(--foreground);
+  }
+  .bauhaus-border {
+    border: 2px solid var(--foreground);
+  }
+}
