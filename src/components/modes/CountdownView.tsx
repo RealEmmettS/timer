@@ -4,17 +4,8 @@ import { useTimer } from '@/context/TimerContext';
 import { TimerDisplay } from '@/components/TimerDisplay';
 import { MotionButton } from '@/components/shared/MotionButton';
 import { Play, Pause, RotateCcw, Plus, Minus } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { playComplete } from '@/utils/audio';
-
-const PRESETS = [
-  { label: '1m', value: 1 * 60 * 1000 },
-  { label: '5m', value: 5 * 60 * 1000 },
-  { label: '10m', value: 10 * 60 * 1000 },
-  { label: '15m', value: 15 * 60 * 1000 },
-  { label: '25m', value: 25 * 60 * 1000 },
-  { label: '45m', value: 45 * 60 * 1000 },
-];
 
 export default function CountdownView() {
   const { countdown } = useTimer();
@@ -24,6 +15,29 @@ export default function CountdownView() {
   const displayTime = isOvertime ? Math.abs(remaining) : remaining;
   
   const audioPlayedRef = useRef(false);
+
+  // Input state
+  const [inputValue, setInputValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+
+  // Sync input with duration when not focused
+  useEffect(() => {
+    if (!isFocused) {
+      const mins = countdown.duration / 60000;
+      // Remove trailing zeros by simple string conversion
+      setInputValue(mins.toString());
+    }
+  }, [countdown.duration, isFocused]);
+
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    
+    const num = parseFloat(val);
+    if (!isNaN(num) && num >= 0) {
+       countdown.setDuration(num * 60000);
+    }
+  };
 
   useEffect(() => {
      // Play sound when reaching 0 (or crossing it)
@@ -37,11 +51,6 @@ export default function CountdownView() {
      }
   }, [remaining, countdown.isRunning]);
   
-  const handlePreset = (ms: number) => {
-    countdown.reset();
-    countdown.setDuration(ms);
-  };
-
   const adjustTime = (ms: number) => {
      if (countdown.isRunning) return; // Prevent jumping while running for now
      countdown.setDuration(Math.max(0, countdown.duration + ms));
@@ -88,22 +97,24 @@ export default function CountdownView() {
       {/* Side Section: Configuration */}
       <div className="w-full lg:w-64 flex flex-col gap-8 z-20 lg:border-l-2 lg:border-foreground/10 lg:pl-8 lg:self-center">
           
-          {/* Presets */}
+          {/* Duration Input */}
           <div className="flex flex-col gap-3 w-full">
-              <p className="text-xs font-mono uppercase tracking-widest opacity-50 text-center lg:text-left">Presets</p>
-              <div className="grid grid-cols-3 lg:grid-cols-2 gap-3">
-                {PRESETS.map(preset => (
-                  <MotionButton 
-                    key={preset.label} 
-                    variant="secondary" 
-                    size="sm"
-                    onClick={() => handlePreset(preset.value)}
-                    className="font-normal"
-                  >
-                    {preset.label}
-                  </MotionButton>
-                ))}
-              </div>
+              <label htmlFor="duration-input" className="text-xs font-mono uppercase tracking-widest opacity-50 text-center lg:text-left">
+                Duration (min)
+              </label>
+              <input
+                id="duration-input"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="any"
+                value={inputValue}
+                onChange={handleDurationChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                className="w-full bg-transparent border-2 border-foreground p-3 font-mono text-xl text-center bauhaus-shadow-sm focus:outline-none focus:ring-2 focus:ring-bauhaus-blue transition-all placeholder:text-foreground/30"
+                placeholder="0"
+              />
           </div>
           
            {/* Adjustments */}
