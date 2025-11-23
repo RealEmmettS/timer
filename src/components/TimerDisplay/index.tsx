@@ -16,6 +16,11 @@ interface TimerDisplayProps {
 
 export function TimerDisplay({ ms, totalMs = 0, mode = 'countdown', showMs = false, overtime = false, ringColor: propRingColor }: TimerDisplayProps) {
   const textRef = useRef<HTMLDivElement>(null);
+  /* We sample the viewport so we can dynamically scale the timer ring for short or narrow displays.
+     This avoids cutoffs by capping the visual size before we render the SVG. */
+  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+  /* We track the live text bounds to keep the ring padded tightly around the digits.
+     This measurement lets us shrink responsibly when the layout collapses into mobile widths. */
   const [textSize, setTextSize] = useState({ width: 0, height: 0 });
 
   // Format logic
@@ -60,6 +65,25 @@ export function TimerDisplay({ ms, totalMs = 0, mode = 'countdown', showMs = fal
     }
   }, [hasHours, hasMs]); // Recalculate when layout might change significantly
 
+  /* We re-measure the viewport to keep the timer responsive when laptops resize or rotate.
+     The resize handler is light-weight and cancels on cleanup to avoid memory leaks. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const updateViewport = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    window.addEventListener('orientationchange', updateViewport);
+    return () => {
+      window.removeEventListener('resize', updateViewport);
+      window.removeEventListener('orientationchange', updateViewport);
+    };
+  }, []);
+
   const ringPadding = 60; // Space between text and ring
   const minRingSize = 320;
   
@@ -69,13 +93,16 @@ export function TimerDisplay({ ms, totalMs = 0, mode = 'countdown', showMs = fal
   const approxWidth = charCount * 35; // Rough guess for 5xl/6xl font
   
   // Use measured width if available, else approximation
-  const targetSize = Math.max(minRingSize, (textSize.width || approxWidth) + ringPadding * 2);
+  const textDrivenSize = Math.max(minRingSize, (textSize.width || approxWidth) + ringPadding * 2);
+  const widthCap = viewportSize.width ? Math.max(220, viewportSize.width * 0.8) : textDrivenSize;
+  const heightCap = viewportSize.height ? Math.max(220, viewportSize.height - 220) : textDrivenSize;
+  const targetSize = Math.max(220, Math.min(textDrivenSize, widthCap, heightCap));
   
   return (
-    <div 
-        className="relative flex flex-col items-center justify-center w-full max-w-xl mx-auto transition-all duration-300 ease-out"
-        style={{ minHeight: targetSize + 40, marginTop: '2rem', marginBottom: '2rem' }} 
-    >
+      <div 
+          className="relative flex flex-col items-center justify-center w-full max-w-xl mx-auto transition-all duration-300 ease-out px-2"
+          style={{ minHeight: targetSize + 40, marginTop: 'clamp(1rem,4vh,2.5rem)', marginBottom: 'clamp(1rem,4vh,2.5rem)' }} 
+      >
       {/* Ring Container - Absolute centered but sized to content */}
       <div 
         className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-out"
