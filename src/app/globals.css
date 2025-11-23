@@ -34,11 +34,32 @@
   }
 }
 
+/* The body styles set the global canvas and manage scroll behavior responsively.
+   This keeps the experience immersive on large screens while preventing cutoff on compact viewports. */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  overflow: hidden; /* Prevent scroll for app-like feel */
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* This breakpoint slightly reduces the base font size on shorter screens to preserve layout proportions.
+   The intent is to keep headings and control clusters within the first fold without manual zoom. */
+@media (max-height: 900px) {
+  body {
+    font-size: 0.95rem;
+  }
+}
+
+/* On extra-short displays we trim typography further and add breathing room to avoid cramped visuals.
+   The padding tweak also offsets safe-area overlaps when browser UI encroaches on the viewport. */
+@media (max-height: 760px) {
+  body {
+    font-size: 0.9rem;
+    padding-block: 0.5rem;
+  }
 }
 
 /* Utility classes for interactive elements */

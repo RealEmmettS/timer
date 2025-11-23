@@ -54,7 +54,8 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Render active view
+  /* We map timer modes to a specific view so the layout remains declarative and predictable.
+     This fallback strategy ensures the countdown UI always renders even if context is temporarily undefined. */
   const renderView = () => {
     switch (activeMode) {
       case 'countdown': return <CountdownView />;
@@ -65,11 +66,12 @@ export default function Home() {
   };
 
   return (
-    <main className="relative min-h-screen w-full flex flex-col overflow-hidden bg-transparent transition-colors duration-300">
+    <main className="relative min-h-dvh w-full flex flex-col overflow-x-hidden bg-transparent transition-colors duration-300 px-2 sm:px-4">
       <InteractiveGridBackground />
       
-      {/* Header */}
-      <header className="relative z-10 w-full p-4 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
+      {/* The header clusters navigation and quick toggles so users can access key controls without scrolling.
+          Its layout collapses into a vertical stack on small screens to preserve breathing room. */}
+      <header className="relative z-10 w-full max-w-5xl mx-auto p-4 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center justify-between w-full md:w-auto">
             <h1 className="font-mono font-bold text-xl tracking-tighter uppercase">
             Bauhaus<span className="text-bauhaus-red">.</span>Timer
@@ -99,8 +101,9 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 w-full">
+      {/* This content block hosts the animated mode views and flexes to occupy the remaining vertical space.
+          We center the active mode on roomy screens but bias toward the top on short displays for better fit. */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center gap-4 sm:gap-6 p-4 w-full max-w-5xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeMode}
@@ -115,8 +118,9 @@ export default function Home() {
         </AnimatePresence>
       </div>
       
-      {/* Footer */}
-      <footer className="relative z-10 p-6 text-center opacity-40 font-mono text-[10px] uppercase tracking-widest hidden md:block">
+      {/* The footer reinforces the brand voice and only appears when there is enough vertical space to keep things airy.
+          Hiding it on compact breakpoints prevents the main controls from feeling cramped. */}
+      <footer className="relative z-10 p-4 md:p-6 text-center opacity-40 font-mono text-[10px] uppercase tracking-widest hidden md:block">
          <p>Designed with Bauhaus Principles • Precision Timing</p>
       </footer>
     </main>
