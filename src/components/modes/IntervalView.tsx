@@ -40,7 +40,7 @@ export default function IntervalView() {
   if (isSetup) {
       return (
           <div className="w-full max-w-md mx-auto space-y-8 animate-in fade-in pt-10">
-             <div className="bg-white dark:bg-neutral-900 border-2 border-foreground bauhaus-shadow p-6 space-y-6">
+             <div className="bg-background/90 backdrop-blur-sm border-2 border-foreground bauhaus-shadow p-6 space-y-6">
                 <h2 className="text-xl font-mono font-bold uppercase tracking-widest text-center">Interval Setup</h2>
                 
                 <div className="space-y-4">
@@ -104,7 +104,7 @@ export default function IntervalView() {
           <div className={`font-mono text-sm font-bold uppercase tracking-widest px-4 py-1 border-2 border-foreground ${isWorkPhase ? 'bg-bauhaus-yellow text-black' : 'bg-bauhaus-blue text-white'}`}>
             {isComplete ? "Complete" : (isWorkPhase ? "Work" : "Rest")}
           </div>
-          <span className="font-mono text-xs opacity-60">Round {interval.currentRound} / {rounds}</span>
+          <span className="font-mono text-xs text-foreground/70">Round {interval.currentRound} / {rounds}</span>
       </div>
       
       <div className="w-full flex justify-center">
@@ -116,7 +116,7 @@ export default function IntervalView() {
          />
       </div>
 
-      <div className="flex items-center justify-center gap-6 relative z-20 mt-4">
+      <div className="flex items-center justify-center gap-6 mt-4">
          <MotionButton 
           variant="ghost" 
           size="icon" 

@@ -27,7 +27,7 @@ export default function StopwatchView() {
         />
       </div>
 
-      <div className="flex items-center justify-center gap-6 relative z-20 mt-4">
+      <div className="flex items-center justify-center gap-6 mt-4">
          <MotionButton 
           variant="ghost" 
           size="icon" 
@@ -79,7 +79,7 @@ export default function StopwatchView() {
                            animate={{ opacity: 1, y: 0 }}
                            className="grid grid-cols-3 gap-4 py-3 border-b border-foreground/5 font-mono text-sm"
                         >
-                            <span className="font-bold text-foreground/50">#{index + 1}</span>
+                            <span className="font-bold text-foreground/70">#{index + 1}</span>
                             <span className="text-center">{formatTime(split)}</span>
                             <span className="text-right opacity-70">{formatTime(lapTime)}</span>
                         </motion.div>

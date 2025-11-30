@@ -15,11 +15,13 @@ A professional-grade, high-fidelity timer application built with Next.js, React,
 - **Interactive Background**: A subtle grid background that highlights interactively with cursor movement.
 - **Motion Design**: Fluid transitions and "tactile" button interactions using Framer Motion.
 - **Dark/Light Mode**: Fully supported themes that respect system settings or user override.
+- **Accessibility**: Respects `prefers-reduced-motion` for users with vestibular disorders.
+- **Mobile-Optimized**: Safe-area insets support for notched devices (iPhone X+, etc.).
 
 ### 🚀 Modes
 1.  **Countdown**:
     -   Visual circular progress ring.
-    -   Smart presets (Pomodoro, 1m, 5m, etc.).
+    -   Flexible duration input field with quick adjustment buttons.
     -   Overtime tracking (visual shift to alert urgency).
 2.  **Stopwatch**:
     -   Millisecond precision (`00:00.00`).

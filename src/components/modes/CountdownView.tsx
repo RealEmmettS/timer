@@ -16,27 +16,33 @@ export default function CountdownView() {
   
   const audioPlayedRef = useRef(false);
 
-  // Input state
-  const [inputValue, setInputValue] = useState('');
+  // Input state - only tracks user input while focused
+  const [localInputValue, setLocalInputValue] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
 
-  // Sync input with duration when not focused
-  useEffect(() => {
-    if (!isFocused) {
-      const mins = countdown.duration / 60000;
-      // Remove trailing zeros by simple string conversion
-      setInputValue(mins.toString());
-    }
-  }, [countdown.duration, isFocused]);
+  // Compute display value: use local value when focused, otherwise derive from duration
+  const displayInputValue = isFocused && localInputValue !== null
+    ? localInputValue
+    : (countdown.duration / 60000).toString();
 
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setInputValue(val);
-    
+    setLocalInputValue(val);
+
     const num = parseFloat(val);
     if (!isNaN(num) && num >= 0) {
        countdown.setDuration(num * 60000);
     }
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    setLocalInputValue((countdown.duration / 60000).toString());
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    setLocalInputValue(null);
   };
 
   useEffect(() => {
@@ -68,7 +74,7 @@ export default function CountdownView() {
          />
 
          {/* Controls */}
-         <div className="flex items-center justify-center gap-6 relative z-20 mt-4">
+         <div className="flex items-center justify-center gap-6 mt-4">
             <MotionButton 
               variant="ghost" 
               size="icon" 
@@ -95,11 +101,11 @@ export default function CountdownView() {
       </div>
 
       {/* Side Section: Configuration */}
-      <div className="w-full lg:w-64 flex flex-col gap-8 z-20 lg:border-l-2 lg:border-foreground/10 lg:pl-8 lg:self-center">
+      <div className="w-full lg:w-64 flex flex-col gap-8 lg:border-l-2 lg:border-foreground/10 lg:pl-8 lg:self-center">
           
           {/* Duration Input */}
           <div className="flex flex-col gap-3 w-full">
-              <label htmlFor="duration-input" className="text-xs font-mono uppercase tracking-widest opacity-50 text-center lg:text-left">
+              <label htmlFor="duration-input" className="text-xs font-mono uppercase tracking-widest text-foreground/70 text-center lg:text-left">
                 Duration (min)
               </label>
               <input
@@ -108,10 +114,10 @@ export default function CountdownView() {
                 inputMode="decimal"
                 min="0"
                 step="any"
-                value={inputValue}
+                value={displayInputValue}
                 onChange={handleDurationChange}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
                 className="w-full bg-transparent border-2 border-foreground p-3 font-mono text-xl text-center bauhaus-shadow-sm focus:outline-none focus:ring-2 focus:ring-bauhaus-blue transition-all placeholder:text-foreground/30"
                 placeholder="0"
               />
@@ -119,7 +125,7 @@ export default function CountdownView() {
           
            {/* Adjustments */}
            <div className="flex flex-col gap-3 w-full pt-4 border-t border-foreground/10 lg:border-none lg:pt-0">
-              <p className="text-xs font-mono uppercase tracking-widest opacity-50 text-center lg:text-left">Adjust</p>
+              <p className="text-xs font-mono uppercase tracking-widest text-foreground/70 text-center lg:text-left">Adjust</p>
                <div className="flex flex-col gap-3">
                    <div className="flex gap-2 w-full">
                       <MotionButton size="sm" variant="ghost" className="flex-1" onClick={() => adjustTime(-60000)} disabled={countdown.isRunning}>

@@ -120,7 +120,7 @@ export default function Home() {
       
       {/* The footer reinforces the brand voice and only appears when there is enough vertical space to keep things airy.
           Hiding it on compact breakpoints prevents the main controls from feeling cramped. */}
-      <footer className="relative z-10 p-4 md:p-6 text-center opacity-40 font-mono text-[10px] uppercase tracking-widest hidden md:block">
+      <footer className="relative z-10 p-4 md:p-6 text-center text-foreground/60 font-mono text-[10px] uppercase tracking-widest hidden md:block">
          <p>Designed with Bauhaus Principles • Precision Timing</p>
       </footer>
     </main>

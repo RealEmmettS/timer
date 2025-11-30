@@ -34,6 +34,12 @@
   }
 }
 
+/* Class-based dark mode for manual toggle */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
 /* The body styles set the global canvas and manage scroll behavior responsively.
    This keeps the experience immersive on large screens while preventing cutoff on compact viewports. */
 body {
@@ -72,5 +78,23 @@ body {
   }
   .bauhaus-border {
     border: 2px solid var(--foreground);
+  }
+}
+
+/* Reduced motion support for users with vestibular disorders */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Safe area insets for notched devices (iPhone X+, etc.) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }

@@ -13,7 +13,7 @@ export function MotionButton({ className, variant = 'primary', size = 'md', chil
   
   const variants = {
     primary: "bg-bauhaus-blue text-white hover:bg-blue-600 bauhaus-shadow active:translate-x-[2px] active:translate-y-[2px] active:shadow-none active:bauhaus-shadow-sm",
-    secondary: "bg-white text-foreground hover:bg-gray-100 bauhaus-shadow active:translate-x-[2px] active:translate-y-[2px] active:shadow-none active:bauhaus-shadow-sm dark:bg-neutral-800 dark:text-white",
+    secondary: "bg-background text-foreground hover:bg-foreground/10 bauhaus-shadow active:translate-x-[2px] active:translate-y-[2px] active:shadow-none active:bauhaus-shadow-sm",
     danger: "bg-bauhaus-red text-white hover:bg-red-600 bauhaus-shadow active:translate-x-[2px] active:translate-y-[2px] active:shadow-none active:bauhaus-shadow-sm",
     ghost: "bg-transparent border-transparent hover:bg-foreground/10 text-foreground",
   };

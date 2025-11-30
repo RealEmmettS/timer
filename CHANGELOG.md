@@ -33,6 +33,28 @@ All notable changes to the "Bauhaus Timer" project will be documented in this fi
 ### Fixed
 - N/A (Initial Release)
 
+## [2025-11-29]
+
+### Added
+- **Accessibility**: Added `prefers-reduced-motion` CSS support for users with vestibular disorders
+- **Accessibility**: Added safe-area insets for notched devices (iPhone X+, etc.)
+
+### Changed
+- **ModeSwitcher**: Improved responsive padding (`px-2 sm:px-4`, `text-xs sm:text-sm`) for better display on screens < 320px
+- **ModeSwitcher**: Updated background to use `bg-background` CSS variable for proper dark mode support
+- **MotionButton**: Updated secondary variant to use `bg-background` for consistent dark mode theming
+- **IntervalView**: Changed setup form background to translucent (`bg-background/90 backdrop-blur-sm`) for visual consistency with other views
+- **CountdownView**: Refactored duration input state management to compute display value during render instead of using `setState` in effect (ESLint compliance)
+
+### Fixed
+- **Dark Mode Toggle**: Fixed dark mode not applying when manually toggled - CSS variables now respond to `.dark` class in addition to `prefers-color-scheme` media query
+- **Theme Consistency**: All components now properly support both light and dark modes using CSS variables
+- **Contrast Accessibility**: Improved text contrast for labels and secondary text in both light and dark modes (changed from `opacity-50` to `text-foreground/70`)
+- **ModeSwitcher**: Fixed selected tab text color in dark mode - now uses `text-background` CSS variable instead of Tailwind `dark:` variants for proper contrast (white bg with black text)
+
+### Removed
+- Removed unnecessary `z-20` declarations from control containers in CountdownView, StopwatchView, and IntervalView (z-index not needed due to canvas-based grid implementation)
+
 ## [2025-11-20]
 
 ### Changed
