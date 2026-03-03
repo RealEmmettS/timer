@@ -5,6 +5,7 @@ All notable changes to the "SHAUGHV Timer" project will be documented in this fi
 ## [2026-03-03]
 
 ### Changed
+- **Favicon**: Switched to SHAUGHV Dark Alternate brandmark (orange/terracotta accents on dark background) from the previous dark green variant.
 - **Favicon**: Replaced default `favicon.ico` with dark SHAUGHV brandmark SVG (`icon.svg`) for crisp, scalable browser tab icon.
 
 ### Added
