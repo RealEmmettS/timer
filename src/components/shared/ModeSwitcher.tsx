@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
+import { hapticSelection } from '@/utils/haptics';
 
 type Mode = 'countdown' | 'stopwatch' | 'interval';
 
@@ -22,7 +23,7 @@ export function ModeSwitcher({ activeMode, onChange }: ModeSwitcherProps) {
       {modes.map((mode) => (
         <button
           key={mode.id}
-          onClick={() => onChange(mode.id)}
+          onClick={() => { hapticSelection(); onChange(mode.id); }}
           className={clsx(
             "relative px-2 sm:px-4 py-2 text-xs sm:text-sm font-bold uppercase tracking-wide transition-colors z-10 outline-none focus-visible:ring-2",
             activeMode === mode.id ? "text-background" : "text-foreground hover:text-foreground/70"

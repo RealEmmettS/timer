@@ -4,7 +4,9 @@ import { useTimer } from '@/context/TimerContext';
 import { TimerDisplay } from '@/components/TimerDisplay';
 import { MotionButton } from '@/components/shared/MotionButton';
 import { Play, Pause, RotateCcw, Settings2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { playComplete } from '@/utils/audio';
+import { hapticNudge, hapticSuccess, hapticSoft, hapticWarning } from '@/utils/haptics';
 
 export default function IntervalView() {
   const { interval } = useTimer();
@@ -23,6 +25,34 @@ export default function IntervalView() {
   const isComplete = interval.elapsed >= (rounds * cycleTime);
   // If complete, show 0
   const displayMs = isComplete ? 0 : Math.max(0, phaseRemaining);
+
+  // Track phase transitions and completion for haptics/audio
+  const prevPhaseRef = useRef(isWorkPhase);
+  const completionFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (!interval.isRunning) return;
+
+    // Phase transition (work ↔ rest)
+    if (prevPhaseRef.current !== isWorkPhase && !isComplete) {
+      hapticNudge();
+    }
+    prevPhaseRef.current = isWorkPhase;
+
+    // Workout completion
+    if (isComplete && !completionFiredRef.current) {
+      hapticSuccess();
+      playComplete();
+      completionFiredRef.current = true;
+    }
+  }, [isWorkPhase, isComplete, interval.isRunning]);
+
+  // Reset completion flag when timer resets
+  useEffect(() => {
+    if (interval.elapsed === 0) {
+      completionFiredRef.current = false;
+    }
+  }, [interval.elapsed]);
   
   const handleStart = () => {
       interval.start();
@@ -117,17 +147,18 @@ export default function IntervalView() {
       </div>
 
       <div className="flex items-center justify-center gap-6 mt-4">
-         <MotionButton 
-          variant="ghost" 
-          size="icon" 
-          onClick={interval.reset} 
+         <MotionButton
+          variant="ghost"
+          size="icon"
+          onClick={interval.reset}
           title="Reset"
+          haptic={hapticWarning}
         >
            <RotateCcw className="w-6 h-6" />
         </MotionButton>
 
         {interval.isRunning ? (
-          <MotionButton variant="secondary" size="lg" className="w-40" onClick={interval.pause}>
+          <MotionButton variant="secondary" size="lg" className="w-40" onClick={interval.pause} haptic={hapticSoft}>
             <Pause className="mr-2 w-5 h-5 fill-current" /> Pause
           </MotionButton>
         ) : (

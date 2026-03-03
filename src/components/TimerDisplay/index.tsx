@@ -145,8 +145,8 @@ export function TimerDisplay({ ms, totalMs = 0, mode = 'countdown', showMs = fal
           <>
             <span className="mx-1 text-4xl opacity-50 self-end mb-2">.</span>
             <div className="text-4xl opacity-80 flex self-end mb-2">
-               <Digit value={pad(centiseconds)[0]} />
-               <Digit value={pad(centiseconds)[1]} />
+               <Digit value={pad(centiseconds)[0]} fast />
+               <Digit value={pad(centiseconds)[1]} fast />
             </div>
           </>
         )}

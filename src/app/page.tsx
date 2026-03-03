@@ -73,8 +73,8 @@ export default function Home() {
           Its layout collapses into a vertical stack on small screens to preserve breathing room. */}
       <header className="relative z-10 w-full max-w-5xl mx-auto p-4 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center justify-between w-full md:w-auto">
-            <h1 className="font-mono font-bold text-xl tracking-tighter uppercase">
-            Bauhaus<span className="text-bauhaus-red">.</span>Timer
+            <h1 className="flex items-center">
+              <img src="/shaughv-logo.svg" alt="SHAUGHV" className="h-12 w-auto dark:invert" />
             </h1>
             {/* Mobile controls show here */}
             <div className="flex md:hidden items-center gap-2">
@@ -121,7 +121,7 @@ export default function Home() {
       {/* The footer reinforces the brand voice and only appears when there is enough vertical space to keep things airy.
           Hiding it on compact breakpoints prevents the main controls from feeling cramped. */}
       <footer className="relative z-10 p-4 md:p-6 text-center text-foreground/60 font-mono text-[10px] uppercase tracking-widest hidden md:block">
-         <p>Designed with Bauhaus Principles • Precision Timing</p>
+         <p>SHAUGHV Timer &bull; Precision Timing</p>
       </footer>
     </main>
   );

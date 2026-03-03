@@ -1,6 +1,28 @@
 # Changelog
 
-All notable changes to the "Bauhaus Timer" project will be documented in this file.
+All notable changes to the "SHAUGHV Timer" project will be documented in this file.
+
+## [2026-03-03]
+
+### Changed
+- **Favicon**: Replaced default `favicon.ico` with dark SHAUGHV brandmark SVG (`icon.svg`) for crisp, scalable browser tab icon.
+
+### Added
+- **SHAUGHV Branding**: Replaced "Bauhaus Timer" branding with official SHAUGHV SVG wordmark in header, updated metadata title/description, and updated footer text.
+- **Mobile Haptic Feedback**: Integrated `web-haptics` library with preset haptic functions (selection, light, medium, soft, rigid, warning, success, nudge) for tactile feedback on supported mobile devices.
+- **MotionButton Auto-Haptics**: All `MotionButton` instances fire variant-appropriate haptic feedback by default (primary→medium, secondary→light, danger→warning, ghost→selection), with per-button override via `haptic` prop.
+- **ModeSwitcher Haptics**: Tab switches trigger selection haptic feedback.
+- **Timer Event Haptics**: Countdown completion fires success haptic; stopwatch lap fires rigid haptic; interval phase transitions fire nudge haptic; workout completion fires success haptic.
+- **Interval Completion Audio**: Added `playComplete()` audio chime when interval workout finishes (previously missing).
+
+### Fixed
+- **Stopwatch Digit Clipping**: Centisecond digits (`.XX`) were visually cut off during rapid updates because the spring animation (stiffness 400, damping 25) couldn't settle within the ~50ms tick interval. Added a `fast` rendering path to the `Digit` component that swaps digits instantly without animation, applied to the two centisecond digit slots.
+- **Digit Container Width**: Changed all `Digit` containers from `w-[0.65em]` to `w-[1ch]` — the CSS `ch` unit equals the width of the "0" glyph in the current font, which is semantically correct for a single-digit display and prevents clipping regardless of font metrics.
+- **Countdown Duration Input Transparency**: The duration input field on the Countdown view used `bg-transparent`, allowing the interactive grid background to show through the text box. Changed to `bg-background` so the input has a solid, opaque fill matching the app's theme in both light and dark modes.
+
+### Changed
+- **Global Tabular Numerals**: Added `font-variant-numeric: tabular-nums` to the `body` rule in `globals.css`. This enables the OpenType `tnum` feature globally, ensuring all numeric characters render at equal widths across the entire app — preventing horizontal layout shift whenever digits change (timers, counters, lap times, adjustment buttons, etc.).
+- **Stopwatch Laps Table**: Added the `tabular-nums` Tailwind utility class to lap table rows in `StopwatchView`, ensuring split and total time columns maintain consistent alignment as values update.
 
 ## [Unreleased]
 

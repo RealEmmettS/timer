@@ -13,8 +13,8 @@ const clarweMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Bauhaus Timer",
-  description: "A high-fidelity, minimalist timer application.",
+  title: "SHAUGHV Timer",
+  description: "A precision timer application by SHAUGHV. Countdown, stopwatch, and interval modes.",
 };
 
 export default function RootLayout({

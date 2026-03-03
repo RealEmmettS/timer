@@ -5,6 +5,7 @@ import { TimerDisplay } from '@/components/TimerDisplay';
 import { MotionButton } from '@/components/shared/MotionButton';
 import { Play, Pause, RotateCcw, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { hapticRigid, hapticWarning, hapticSoft } from '@/utils/haptics';
 
 export default function StopwatchView() {
   const { stopwatch } = useTimer();
@@ -28,18 +29,19 @@ export default function StopwatchView() {
       </div>
 
       <div className="flex items-center justify-center gap-6 mt-4">
-         <MotionButton 
-          variant="ghost" 
-          size="icon" 
-          onClick={stopwatch.reset} 
+         <MotionButton
+          variant="ghost"
+          size="icon"
+          onClick={stopwatch.reset}
           disabled={stopwatch.elapsed === 0}
           title="Reset"
+          haptic={hapticWarning}
         >
            <RotateCcw className="w-6 h-6" />
         </MotionButton>
 
         {stopwatch.isRunning ? (
-          <MotionButton variant="secondary" size="lg" className="w-40" onClick={stopwatch.pause}>
+          <MotionButton variant="secondary" size="lg" className="w-40" onClick={stopwatch.pause} haptic={hapticSoft}>
             <Pause className="mr-2 w-5 h-5 fill-current" /> Pause
           </MotionButton>
         ) : (
@@ -48,12 +50,13 @@ export default function StopwatchView() {
           </MotionButton>
         )}
         
-        <MotionButton 
-          variant="ghost" 
-          size="icon" 
-          onClick={stopwatch.addLap} 
+        <MotionButton
+          variant="ghost"
+          size="icon"
+          onClick={stopwatch.addLap}
           disabled={!stopwatch.isRunning}
           title="Lap"
+          haptic={hapticRigid}
         >
            <Flag className="w-6 h-6" />
         </MotionButton>
@@ -77,7 +80,7 @@ export default function StopwatchView() {
                            key={index}
                            initial={{ opacity: 0, y: -10 }}
                            animate={{ opacity: 1, y: 0 }}
-                           className="grid grid-cols-3 gap-4 py-3 border-b border-foreground/5 font-mono text-sm"
+                           className="grid grid-cols-3 gap-4 py-3 border-b border-foreground/5 font-mono tabular-nums text-sm"
                         >
                             <span className="font-bold text-foreground/70">#{index + 1}</span>
                             <span className="text-center">{formatTime(split)}</span>

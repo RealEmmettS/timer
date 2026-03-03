@@ -6,6 +6,7 @@ import { MotionButton } from '@/components/shared/MotionButton';
 import { Play, Pause, RotateCcw, Plus, Minus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { playComplete } from '@/utils/audio';
+import { hapticSuccess, hapticSoft, hapticWarning } from '@/utils/haptics';
 
 export default function CountdownView() {
   const { countdown } = useTimer();
@@ -49,6 +50,7 @@ export default function CountdownView() {
      // Play sound when reaching 0 (or crossing it)
      if (remaining <= 0 && !audioPlayedRef.current && countdown.isRunning) {
          playComplete();
+         hapticSuccess();
          audioPlayedRef.current = true;
      }
      // Reset flag if we go back above 0 (e.g. reset or add time)
@@ -75,18 +77,19 @@ export default function CountdownView() {
 
          {/* Controls */}
          <div className="flex items-center justify-center gap-6 mt-4">
-            <MotionButton 
-              variant="ghost" 
-              size="icon" 
-              onClick={countdown.reset} 
+            <MotionButton
+              variant="ghost"
+              size="icon"
+              onClick={countdown.reset}
               disabled={countdown.elapsed === 0}
               title="Reset"
+              haptic={hapticWarning}
             >
                <RotateCcw className="w-6 h-6" />
             </MotionButton>
 
             {countdown.isRunning ? (
-              <MotionButton variant="secondary" size="lg" className="w-40" onClick={countdown.pause}>
+              <MotionButton variant="secondary" size="lg" className="w-40" onClick={countdown.pause} haptic={hapticSoft}>
                 <Pause className="mr-2 w-5 h-5 fill-current" /> Pause
               </MotionButton>
             ) : (
@@ -118,7 +121,7 @@ export default function CountdownView() {
                 onChange={handleDurationChange}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
-                className="w-full bg-transparent border-2 border-foreground p-3 font-mono text-xl text-center bauhaus-shadow-sm focus:outline-none focus:ring-2 focus:ring-bauhaus-blue transition-all placeholder:text-foreground/30"
+                className="w-full bg-background border-2 border-foreground p-3 font-mono text-xl text-center bauhaus-shadow-sm focus:outline-none focus:ring-2 focus:ring-bauhaus-blue transition-all placeholder:text-foreground/30"
                 placeholder="0"
               />
           </div>
