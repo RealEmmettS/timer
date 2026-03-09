@@ -2,6 +2,11 @@
 
 All notable changes to the "SHAUGHV Timer" project will be documented in this file.
 
+## [2026-03-09]
+
+### Fixed
+- **Dark/Light Mode Toggle**: Toggle button had no visible effect — removed conflicting `@media (prefers-color-scheme: dark)` CSS rule that overrode the class-based `.dark` toggle. The JS already syncs with system preference on mount, making the media query redundant and preventing manual switching.
+
 ## [2026-03-03]
 
 ### Changed

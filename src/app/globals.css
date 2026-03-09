@@ -27,14 +27,7 @@
   --font-mono: var(--font-clarwe-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-/* Class-based dark mode for manual toggle */
+/* Class-based dark mode (JS syncs with system preference automatically) */
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
