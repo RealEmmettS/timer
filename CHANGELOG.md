@@ -2,6 +2,11 @@
 
 All notable changes to the "SHAUGHV Timer" project will be documented in this file.
 
+## [2026-03-19]
+
+### Added
+- SHAUGHV logo attribution comments in `public/shaughv-logo.svg` for cross-repo searchability
+
 ## [2026-03-09]
 
 ### Fixed
