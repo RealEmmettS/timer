@@ -1,81 +1,21 @@
-# Bauhaus Timer
+# SHAUGHV Timer
 
-A professional-grade, high-fidelity timer application built with Next.js, React, and Framer Motion. Inspired by the Bauhaus design philosophy of "form follows function," this app features a minimalist, geometric aesthetic with robust, high-accuracy timing.
+A countdown, stopwatch, and interval timer for the browser. Each mode keeps its time when you switch to another. The digital readout uses Geist Mono and the interface uses Makira, both hosted on the SHAUGHV CDN.
 
-![Bauhaus Timer Preview](https://placehold.co/800x400?text=Bauhaus+Timer+Preview)
+- The countdown accepts fractional minutes and continues into overtime. Quick adjustments are available while paused.
+- The stopwatch records lap splits and cumulative times. It displays hundredths and samples the clock independently when you record a lap or pause.
+- Intervals have configurable work and rest durations and a round count. The chime respects the sound control, including while another mode is open.
+- Space starts or pauses the visible timer when the page itself has focus. Timers support light and dark themes, reduced motion, and touch.
 
-## Features
+## Development
 
-### ⏱️ Precision Timing
-- **Web Worker Engine**: Off-main-thread timing ensures accuracy even when the tab is inactive or throttled.
-- **Drift Correction**: Logic to self-correct against system time deltas.
+Run `npm ci`, then `npm run dev`. Check changes with `npm run lint` and `npm run build`.
 
-### 🎨 Bauhaus Design System
-- **Functional Minimalism**: Stark contrasts, geometric shapes, and primary colors (Red, Blue, Yellow).
-- **Interactive Background**: A subtle grid background that highlights interactively with cursor movement.
-- **Motion Design**: Fluid transitions and "tactile" button interactions using Framer Motion.
-- **Dark/Light Mode**: Fully supported themes that respect system settings or user override.
-- **Accessibility**: Respects `prefers-reduced-motion` for users with vestibular disorders.
-- **Mobile-Optimized**: Safe-area insets support for notched devices (iPhone X+, etc.).
+## Timing and motion
 
-### 🚀 Modes
-1.  **Countdown**:
-    -   Visual circular progress ring.
-    -   Flexible duration input field with quick adjustment buttons.
-    -   Overtime tracking (visual shift to alert urgency).
-2.  **Stopwatch**:
-    -   Millisecond precision (`00:00.00`).
-    -   Lap functionality with split time calculation.
-    -   Unlimited lap history for the active session.
-3.  **Interval**:
-    -   High-intensity interval training (HIIT) support.
-    -   Configurable **Work** and **Rest** durations.
-    -   Round tracking and distinct visual phase indicators.
+Each mode owns an instance of `useTimerEngine`. Elapsed time comes from the start timestamp. The worker schedules updates aligned to that timestamp. Idle timers have no worker, and an offscreen stopwatch keeps time without refreshing its display. Browsers may defer alarms while a device sleeps.
 
-## Tech Stack
-
--   **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
--   **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
--   **Animation**: [Framer Motion](https://www.framer.com/motion/)
--   **Icons**: [Lucide React](https://lucide.dev/)
--   **Language**: TypeScript
-
-## Getting Started
-
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/yourusername/bauhaus-timer.git
-    cd bauhaus-timer
-    ```
-
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-3.  **Run the development server**:
-    ```bash
-    npm run dev
-    ```
-
-4.  Open [http://localhost:3000](http://localhost:3000) with your browser.
-
-## Project Structure
-
-```
-├── public/
-│   └── timer.worker.js      # Web Worker for accurate timing
-├── src/
-│   ├── app/                 # Next.js App Router pages
-│   ├── components/
-│   │   ├── modes/           # Feature-specific views (Countdown, Stopwatch, Interval)
-│   │   ├── shared/          # Reusable UI atoms (MotionButton, Input)
-│   │   ├── TimerDisplay/    # Complex timer visualization components
-│   │   └── ...
-│   ├── context/             # Global state management (TimerContext)
-│   ├── hooks/               # Custom hooks (useTimerEngine)
-│   └── utils/               # Helpers (audio, time formatting)
-```
+The dial, buttons, and lap list use short CSS transitions. The pointer-driven grid is confined to the uncovered workspace and has no idle animation loop.
 
 ## License
 

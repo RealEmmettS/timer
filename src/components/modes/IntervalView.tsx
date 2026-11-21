@@ -1,181 +1,61 @@
-'use client';
-
-import { useTimer } from '@/context/TimerContext';
+import { useEffect, useRef, useState } from 'react';
+import { useTimerEngine } from '@/hooks/useTimerEngine';
 import { TimerDisplay } from '@/components/TimerDisplay';
-import { MotionButton } from '@/components/shared/MotionButton';
-import { Play, Pause, RotateCcw, Settings2 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
-import { playComplete } from '@/utils/audio';
-import { hapticNudge, hapticSuccess, hapticSoft, hapticWarning } from '@/utils/haptics';
+import { NumberField } from '@/components/shared/NumberField';
+import { prepareAudio, playComplete } from '@/utils/audio';
+import { hapticNudge, hapticSuccess } from '@/utils/haptics';
 
-export default function IntervalView() {
-  const { interval } = useTimer();
-  const [showConfig, setShowConfig] = useState(false);
-
-  const { work, rest, rounds } = interval.config;
-  const cycleTime = work + rest;
-  
-  // Calculate phase
-  const currentCycleElapsed = interval.elapsed % cycleTime;
-  const isWorkPhase = currentCycleElapsed < work;
-  const phaseRemaining = isWorkPhase 
-    ? work - currentCycleElapsed 
-    : cycleTime - currentCycleElapsed;
-    
-  const isComplete = interval.elapsed >= (rounds * cycleTime);
-  // If complete, show 0
-  const displayMs = isComplete ? 0 : Math.max(0, phaseRemaining);
-
-  // Track phase transitions and completion for haptics/audio
-  const prevPhaseRef = useRef(isWorkPhase);
-  const completionFiredRef = useRef(false);
-
+export default function IntervalView({ active, sound }: { active: boolean; sound: boolean }) {
+  const clock = useTimerEngine();
+  const [work, setWork] = useState(20);
+  const [rest, setRest] = useState(10);
+  const [rounds, setRounds] = useState(8);
+  const cycle = (work + rest) * 1000;
+  const total = rounds * cycle;
+  const round = Math.min(rounds, Math.floor(clock.elapsed / cycle) + 1);
+  const inCycle = clock.elapsed % cycle;
+  const isWork = inCycle < work * 1000;
+  const complete = clock.elapsed >= total;
+  const remaining = complete ? 0 : (isWork ? work * 1000 : cycle) - inCycle;
+  const phase = isWork ? 'Work' : 'Rest';
+  const previousPhase = useRef(isWork);
+  const { isRunning, stopAt } = clock;
   useEffect(() => {
-    if (!interval.isRunning) return;
-
-    // Phase transition (work ↔ rest)
-    if (prevPhaseRef.current !== isWorkPhase && !isComplete) {
+    if (isRunning && complete) {
+      stopAt(total);
+      if (sound) playComplete();
+      hapticSuccess();
+    } else if (isRunning && previousPhase.current !== isWork) {
       hapticNudge();
     }
-    prevPhaseRef.current = isWorkPhase;
+    previousPhase.current = isWork;
+  }, [isRunning, complete, isWork, total, sound, stopAt]);
 
-    // Workout completion
-    if (isComplete && !completionFiredRef.current) {
-      hapticSuccess();
-      playComplete();
-      completionFiredRef.current = true;
-    }
-  }, [isWorkPhase, isComplete, interval.isRunning]);
-
-  // Reset completion flag when timer resets
-  useEffect(() => {
-    if (interval.elapsed === 0) {
-      completionFiredRef.current = false;
-    }
-  }, [interval.elapsed]);
-  
-  const handleStart = () => {
-      interval.start();
-      setShowConfig(false);
-  }
-  
-  // Allow editing config only when paused/reset
-  const updateConfig = (key: keyof typeof interval.config, val: number) => {
-      interval.setConfig({ ...interval.config, [key]: val });
-  }
-
-  // Show config if explicity requested OR if fresh state (elapsed 0 and not running)
-  const isSetup = (interval.elapsed === 0 && !interval.isRunning) || showConfig;
-
-  if (isSetup) {
-      return (
-          <div className="w-full max-w-md mx-auto space-y-8 animate-in fade-in pt-10">
-             <div className="bg-background/90 backdrop-blur-sm border-2 border-foreground bauhaus-shadow p-6 space-y-6">
-                <h2 className="text-xl font-mono font-bold uppercase tracking-widest text-center">Interval Setup</h2>
-                
-                <div className="space-y-4">
-                    <div className="flex flex-col gap-2">
-                        <label className="font-bold text-sm font-mono uppercase">Work (sec)</label>
-                        <input 
-                             type="number" 
-                             className="w-full p-3 border-2 border-foreground bg-transparent font-mono text-lg focus:ring-2 focus:ring-bauhaus-blue outline-none"
-                             value={work / 1000}
-                             onChange={(e) => updateConfig('work', Math.max(1, Number(e.target.value)) * 1000)}
-                           />
-                    </div>
-                    
-                    <div className="flex flex-col gap-2">
-                        <label className="font-bold text-sm font-mono uppercase">Rest (sec)</label>
-                         <input 
-                             type="number" 
-                             className="w-full p-3 border-2 border-foreground bg-transparent font-mono text-lg focus:ring-2 focus:ring-bauhaus-blue outline-none"
-                             value={rest / 1000}
-                             onChange={(e) => updateConfig('rest', Math.max(0, Number(e.target.value)) * 1000)}
-                           />
-                    </div>
-                    
-                    <div className="flex flex-col gap-2">
-                        <label className="font-bold text-sm font-mono uppercase">Rounds</label>
-                         <input 
-                             type="number" 
-                             className="w-full p-3 border-2 border-foreground bg-transparent font-mono text-lg focus:ring-2 focus:ring-bauhaus-blue outline-none"
-                             value={rounds}
-                             onChange={(e) => updateConfig('rounds', Math.max(1, Number(e.target.value)))}
-                           />
-                    </div>
-                </div>
-                
-                <div className="flex gap-4 pt-4">
-                    {interval.elapsed > 0 && (
-                         <MotionButton variant="ghost" className="flex-1" onClick={() => setShowConfig(false)}>
-                            Cancel
-                        </MotionButton>
-                    )}
-                    <MotionButton variant="primary" className="flex-1" onClick={() => setShowConfig(false)}>
-                        Done
-                    </MotionButton>
-                </div>
-             </div>
-             
-             {interval.elapsed === 0 && (
-                <div className="flex justify-center">
-                    <MotionButton variant="primary" size="lg" onClick={handleStart}>
-                        <Play className="mr-2 w-5 h-5" /> Start Workout
-                    </MotionButton>
-                </div>
-             )}
-          </div>
-      )
-  }
-
+  if (!active) return null;
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col items-center space-y-3">
-          <div className={`font-mono text-sm font-bold uppercase tracking-widest px-4 py-1 border-2 border-foreground ${isWorkPhase ? 'bg-bauhaus-yellow text-black' : 'bg-bauhaus-blue text-white'}`}>
-            {isComplete ? "Complete" : (isWorkPhase ? "Work" : "Rest")}
-          </div>
-          <span className="font-mono text-xs text-foreground/70">Round {interval.currentRound} / {rounds}</span>
+    <TimerDisplay
+      label={complete ? 'Workout complete' : phase + ' interval'}
+      ms={remaining}
+      unit="sec"
+      progress={complete ? 0 : remaining / ((isWork ? work : rest) * 1000)}
+      elapsed={clock.elapsed}
+      isRunning={isRunning}
+      complete={complete}
+      status={`${complete ? 'Complete' : isRunning ? phase : clock.elapsed ? 'Paused' : 'Ready'} · Round ${round} of ${rounds}`}
+      onToggle={() => {
+        if (isRunning) clock.pause();
+        else {
+          if (sound) prepareAudio();
+          clock.start();
+        }
+      }}
+      onReset={clock.reset}
+    >
+      <div className="settings interval-settings">
+        <NumberField label="Work" unit="sec" value={work} min={1} disabled={isRunning} onChange={setWork} />
+        <NumberField label="Rest" unit="sec" value={rest} min={0} disabled={isRunning} onChange={setRest} />
+        <NumberField label="Rounds" value={rounds} min={1} disabled={isRunning} onChange={setRounds} />
       </div>
-      
-      <div className="w-full flex justify-center">
-         <TimerDisplay 
-            ms={displayMs} 
-            totalMs={isWorkPhase ? work : rest}
-            mode="interval" 
-            ringColor={isComplete ? "var(--foreground)" : (isWorkPhase ? "var(--bauhaus-yellow)" : "var(--bauhaus-blue)")}
-         />
-      </div>
-
-      <div className="flex items-center justify-center gap-6 mt-4">
-         <MotionButton
-          variant="ghost"
-          size="icon"
-          onClick={interval.reset}
-          title="Reset"
-          haptic={hapticWarning}
-        >
-           <RotateCcw className="w-6 h-6" />
-        </MotionButton>
-
-        {interval.isRunning ? (
-          <MotionButton variant="secondary" size="lg" className="w-40" onClick={interval.pause} haptic={hapticSoft}>
-            <Pause className="mr-2 w-5 h-5 fill-current" /> Pause
-          </MotionButton>
-        ) : (
-          <MotionButton variant="primary" size="lg" className="w-40" onClick={interval.start} disabled={isComplete}>
-            <Play className="mr-2 w-5 h-5 fill-current" /> {isComplete ? 'Done' : 'Resume'}
-          </MotionButton>
-        )}
-        
-         <MotionButton 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setShowConfig(true)} 
-          title="Config"
-        >
-           <Settings2 className="w-6 h-6" />
-        </MotionButton>
-      </div>
-    </div>
+    </TimerDisplay>
   );
 }
