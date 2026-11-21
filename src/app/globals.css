@@ -215,10 +215,11 @@ button { -webkit-tap-highlight-color: transparent; }
     animation: dial-label-in 220ms ease-out var(--mark-delay, 25ms) both;
   }
   .dial-settle { animation: dial-settle 380ms cubic-bezier(.22,.65,.32,1) both; }
+  .face[data-adaptive="true"][data-ready="true"] .dial-hand:not(.dial-rewinding) { transition: transform 220ms ease-out; }
   .dial-hand.dial-rewinding { animation: dial-rewind var(--rewind-duration) cubic-bezier(.32,0,.18,1); }
   .dial-rewinding .dial-settle { animation-duration: 0s; }
 }
-@keyframes dial-rewind { from { transform: rotate(var(--rewind-from)); } to { transform: rotate(0deg); } }
+@keyframes dial-rewind { from { transform: rotate(var(--rewind-from)); } to { transform: rotate(var(--rewind-to)); } }
 @keyframes dial-release { to { opacity: 0; transform: rotate(2deg) scale(.98); } }
 @keyframes dial-register { from { opacity: 0; transform: rotate(-5deg) scale(.97); } }
 @keyframes dial-label-in { from { opacity: 0; transform: translateY(3px); } }
@@ -256,6 +257,6 @@ button { -webkit-tap-highlight-color: transparent; }
   .interval-settings { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
 }
 @media (max-width: 520px) {
-  .face[data-adaptive="true"] .dial-quarter { font-size: 17px; }
+  .face[data-adaptive="true"] .dial-labels text { display: block; font-size: 17px; }
   .dial .dial-per-turn { font-size: 9px; }
 }

@@ -75,7 +75,12 @@ export function TimerDisplay({
   }, []);
   return (
     <section className="instrument" aria-label={label}>
-      <div className="face" data-running={isRunning} data-adaptive={dialDuration !== undefined}>
+      <div
+        className="face"
+        data-running={isRunning}
+        data-ready={!isRunning && !elapsed}
+        data-adaptive={dialDuration !== undefined}
+      >
         <div className="face-body">
           <h2 className="face-title">{label}</h2>
           <div className="readout-wrap">
