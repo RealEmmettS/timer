@@ -1,56 +1,8 @@
-import { memo, useEffect, useEffectEvent, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, type CSSProperties, type ReactNode } from 'react';
 import { Flag, Pause, Play, RotateCcw } from 'lucide-react';
 import { hapticMedium, hapticRigid, hapticSoft, hapticWarning } from '@/utils/haptics';
 
-const DialFace = memo(function DialFace() {
-  return (
-    <g className="dial-face">
-      <circle className="dial-rim" cx="120" cy="120" r="116" />
-      <circle className="dial-track" cx="120" cy="120" r="89" />
-      {Array.from({ length: 60 }, (_, i) => (
-        <line
-          key={i}
-          x1="120"
-          x2="120"
-          y1="14"
-          y2={i % 5 === 0 ? 28 : 20}
-          className={i % 5 === 0 ? 'major' : 'minor'}
-          transform={`rotate(${i * 6} 120 120)`}
-        />
-      ))}
-      {Array.from({ length: 12 }, (_, i) => {
-        const a = (i * Math.PI) / 6;
-        return (
-          <text
-            key={i}
-            className={i % 3 ? 'dial-subdivision' : 'dial-quarter'}
-            x={(120 + Math.sin(a) * 77).toFixed(2)}
-            y={(120 - Math.cos(a) * 77).toFixed(2)}
-          >
-            {String(i * 5).padStart(2, '0')}
-          </text>
-        );
-      })}
-    </g>
-  );
-});
-
-const Dial = memo(function Dial({ value, unit }: { value: number; unit: 'min' | 'sec' }) {
-  const angle = value * 6;
-  return (
-    <svg className="dial" viewBox="0 0 240 240" aria-hidden="true">
-      <DialFace />
-      <text className="dial-unit" x="120" y="157">
-        {unit}
-      </text>
-      <g className="dial-hand" style={{ transform: `rotate(${angle}deg)` }}>
-        <path className="needle" d="M119 21 Q120 17 121 21 L123 133 Q120 138 117 133Z" />
-      </g>
-      <circle className="pin" cx="120" cy="120" r="7" />
-      <circle className="pin-inner" cx="120" cy="120" r="2.5" />
-    </svg>
-  );
-});
+import { Dial } from './Dial';
 
 export function formatTime(ms: number, fraction = false, roundUp = false) {
   const seconds = (roundUp ? Math.ceil : Math.floor)(Math.max(0, ms) / 1000);
@@ -70,7 +22,7 @@ type Props = {
   onToggle: () => void;
   onReset: () => void;
   onLap?: () => void;
-  unit: 'min' | 'sec';
+  dialDuration?: number;
   progress: number;
   fraction?: boolean;
   overtime?: boolean;
@@ -87,7 +39,7 @@ export function TimerDisplay({
   onToggle,
   onReset,
   onLap,
-  unit,
+  dialDuration,
   progress,
   fraction,
   overtime,
@@ -122,7 +74,7 @@ export function TimerDisplay({
   }, []);
   return (
     <section className="instrument" aria-label={label}>
-      <div className="face" data-running={isRunning}>
+      <div className="face" data-running={isRunning} data-adaptive={dialDuration !== undefined}>
         <div className="face-body">
           <h2 className="face-title">{label}</h2>
           <div className="readout-wrap">
@@ -187,7 +139,11 @@ export function TimerDisplay({
           </div>
         </div>
         <div className="dial-well">
-          <Dial key={label} value={unit === 'min' ? ms / 60000 : Math.floor(ms / 1000)} unit={unit} />
+          <Dial
+            ms={dialDuration === undefined ? Math.floor(ms / 1000) * 1000 : ms}
+            duration={dialDuration}
+            phase={label}
+          />
         </div>
         <div className="progress-track" aria-hidden="true">
           <span style={{ transform: `scaleX(${Math.max(0, Math.min(1, progress))})` }} />

@@ -39,7 +39,6 @@ export default function StopwatchView({ active }: { active: boolean }) {
     <TimerDisplay
       label="Elapsed time"
       ms={clock.elapsed}
-      unit="sec"
       progress={(clock.elapsed % 60000) / 60000}
       fraction
       elapsed={clock.elapsed}
