@@ -1,82 +1,52 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-export interface TimerEngine {
-  elapsed: number;
-  isRunning: boolean;
-  start: () => void;
-  pause: () => void;
-  reset: () => void;
-  setElapsedTime: (time: number) => void;
-}
-
-export function useTimerEngine(): TimerEngine {
+export function useTimerEngine(step = 1000, backgroundStep = step) {
   const [elapsed, setElapsed] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  
-  const startTimeRef = useRef<number | null>(null);
-  const savedElapsedRef = useRef<number>(0);
-  const workerRef = useRef<Worker | null>(null);
+  const [origin, setOrigin] = useState<number | null>(null);
+  const saved = useRef(0);
+  const originRef = useRef<number | null>(null);
+
+  const readElapsed = useCallback(
+    () => (originRef.current === null ? saved.current : Math.max(0, Date.now() - originRef.current)),
+    [],
+  );
 
   useEffect(() => {
-    workerRef.current = new Worker('/timer.worker.js');
-    
-    workerRef.current.onmessage = (e) => {
-      if (e.data === 'TICK') {
-        if (startTimeRef.current !== null) {
-          const now = Date.now();
-          const currentSessionElapsed = now - startTimeRef.current;
-          setElapsed(savedElapsedRef.current + currentSessionElapsed);
-        }
-      }
-    };
-
-    return () => {
-      workerRef.current?.terminate();
-    };
-  }, []);
-
-  const start = useCallback(() => {
-    if (isRunning) return;
-    
-    setIsRunning(true);
-    startTimeRef.current = Date.now();
-    
-    workerRef.current?.postMessage({ action: 'START' });
-  }, [isRunning]);
-
-  const pause = useCallback(() => {
-    if (!isRunning) return;
-    
-    setIsRunning(false);
-    workerRef.current?.postMessage({ action: 'STOP' });
-    
-    // Commit the elapsed time
-    if (startTimeRef.current !== null) {
-      savedElapsedRef.current += Date.now() - startTimeRef.current;
-      startTimeRef.current = null;
+    if (origin === null || !step) return;
+    const worker = new Worker('/timer.worker.js');
+    function schedule() {
+      const interval = document.hidden ? backgroundStep : step;
+      worker.postMessage({ action: interval ? 'START' : 'STOP', interval, origin });
     }
-  }, [isRunning]);
+    worker.onmessage = () => {
+      if (originRef.current === origin) setElapsed(readElapsed());
+    };
+    schedule();
+    document.addEventListener('visibilitychange', schedule);
+    return () => {
+      document.removeEventListener('visibilitychange', schedule);
+      worker.terminate();
+    };
+  }, [origin, step, backgroundStep, readElapsed]);
 
-  const reset = useCallback(() => {
-    setIsRunning(false);
-    workerRef.current?.postMessage({ action: 'STOP' });
-    savedElapsedRef.current = 0;
-    startTimeRef.current = null;
-    setElapsed(0);
+  const start = () => {
+    if (originRef.current !== null) return;
+    originRef.current = Date.now() - saved.current;
+    setOrigin(originRef.current);
+  };
+  const stopAt = useCallback((time: number) => {
+    saved.current = time;
+    originRef.current = null;
+    setOrigin(null);
+    setElapsed(time);
   }, []);
-
-  const setElapsedTime = useCallback((time: number) => {
-      savedElapsedRef.current = time;
-      setElapsed(time);
-  }, []);
-
   return {
     elapsed,
-    isRunning,
+    isRunning: origin !== null,
     start,
-    pause,
-    reset,
-    setElapsedTime
+    readElapsed,
+    stopAt,
+    pause: () => stopAt(readElapsed()),
+    reset: () => stopAt(0),
   };
 }
-

@@ -1,156 +1,199 @@
-'use client';
+import { memo, useEffect, useEffectEvent, type CSSProperties, type ReactNode } from 'react';
+import { Flag, Pause, Play, RotateCcw } from 'lucide-react';
+import { hapticMedium, hapticRigid, hapticSoft, hapticWarning } from '@/utils/haptics';
 
-import { Digit } from './Digit';
-import { ProgressRing } from './ProgressRing';
-import { clsx } from 'clsx';
-import { useState, useRef, useEffect } from 'react';
+const DialFace = memo(function DialFace() {
+  return (
+    <g className="dial-face">
+      <circle className="dial-rim" cx="120" cy="120" r="116" />
+      <circle className="dial-track" cx="120" cy="120" r="89" />
+      {Array.from({ length: 60 }, (_, i) => (
+        <line
+          key={i}
+          x1="120"
+          x2="120"
+          y1="14"
+          y2={i % 5 === 0 ? 28 : 20}
+          className={i % 5 === 0 ? 'major' : 'minor'}
+          transform={`rotate(${i * 6} 120 120)`}
+        />
+      ))}
+      {Array.from({ length: 12 }, (_, i) => {
+        const a = (i * Math.PI) / 6;
+        return (
+          <text
+            key={i}
+            className={i % 3 ? 'dial-subdivision' : 'dial-quarter'}
+            x={(120 + Math.sin(a) * 77).toFixed(2)}
+            y={(120 - Math.cos(a) * 77).toFixed(2)}
+          >
+            {String(i * 5).padStart(2, '0')}
+          </text>
+        );
+      })}
+    </g>
+  );
+});
 
-interface TimerDisplayProps {
-  ms: number;
-  totalMs?: number; // For progress ring
-  mode?: 'countdown' | 'stopwatch' | 'interval';
-  showMs?: boolean;
-  overtime?: boolean;
-  ringColor?: string;
+const Dial = memo(function Dial({ value, unit }: { value: number; unit: 'min' | 'sec' }) {
+  const angle = value * 6;
+  return (
+    <svg className="dial" viewBox="0 0 240 240" aria-hidden="true">
+      <DialFace />
+      <text className="dial-unit" x="120" y="157">
+        {unit}
+      </text>
+      <g className="dial-hand" style={{ transform: `rotate(${angle}deg)` }}>
+        <path className="needle" d="M119 21 Q120 17 121 21 L123 133 Q120 138 117 133Z" />
+      </g>
+      <circle className="pin" cx="120" cy="120" r="7" />
+      <circle className="pin-inner" cx="120" cy="120" r="2.5" />
+    </svg>
+  );
+});
+
+export function formatTime(ms: number, fraction = false, roundUp = false) {
+  const seconds = (roundUp ? Math.ceil : Math.floor)(Math.max(0, ms) / 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const hours = Math.floor(seconds / 3600);
+  const clock =
+    (hours ? pad(hours) + ':' : '') + pad(Math.floor(seconds / 60) % 60) + ':' + pad(seconds % 60);
+  return fraction ? clock + '.' + pad(Math.floor(ms / 10) % 100) : clock;
 }
 
-export function TimerDisplay({ ms, totalMs = 0, mode = 'countdown', showMs = false, overtime = false, ringColor: propRingColor }: TimerDisplayProps) {
-  const textRef = useRef<HTMLDivElement>(null);
-  /* We sample the viewport so we can dynamically scale the timer ring for short or narrow displays.
-     This avoids cutoffs by capping the visual size before we render the SVG. */
-  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
-  /* We track the live text bounds to keep the ring padded tightly around the digits.
-     This measurement lets us shrink responsibly when the layout collapses into mobile widths. */
-  const [textSize, setTextSize] = useState({ width: 0, height: 0 });
+type Props = {
+  label: string;
+  ms: number;
+  status: string;
+  isRunning: boolean;
+  elapsed: number;
+  onToggle: () => void;
+  onReset: () => void;
+  onLap?: () => void;
+  unit: 'min' | 'sec';
+  progress: number;
+  fraction?: boolean;
+  overtime?: boolean;
+  complete?: boolean;
+  children?: ReactNode;
+};
 
-  // Format logic
-  const absMs = Math.abs(ms);
-  const hours = Math.floor(absMs / 3600000);
-  const minutes = Math.floor((absMs % 3600000) / 60000);
-  const seconds = Math.floor((absMs % 60000) / 1000);
-  const centiseconds = Math.floor((absMs % 1000) / 10);
-
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  
-  // Calculate progress for ring
-  let progress = 0;
-  if (mode === 'countdown' && totalMs > 0) {
-     progress = Math.max(0, ms) / totalMs;
-  } else if (mode === 'interval' && totalMs > 0) {
-     // Interval usually shows remaining time in current segment
-     progress = Math.max(0, ms) / totalMs;
-  } else if (mode === 'stopwatch') {
-     // Stopwatch fills up per minute
-     progress = (absMs % 60000) / 60000; 
-  }
-  
-  // Determine ring color
-  let ringColor = propRingColor;
-  if (!ringColor) {
-      ringColor = "var(--bauhaus-blue)";
-      if (overtime) ringColor = "var(--bauhaus-red)";
-      else if (mode === 'interval') ringColor = "var(--bauhaus-yellow)"; // Or pass from parent based on Work/Rest
-      else if (mode === 'countdown' && ms <= 10000 && ms > 0) ringColor = "var(--bauhaus-yellow)";
-  }
-
-  // Determine text length category for sizing
-  const hasHours = hours > 0;
-  const hasMs = showMs;
-
-  // Measure text size for responsive ring
+export function TimerDisplay({
+  label,
+  ms,
+  status,
+  elapsed,
+  isRunning,
+  onToggle,
+  onReset,
+  onLap,
+  unit,
+  progress,
+  fraction,
+  overtime,
+  complete,
+  children,
+}: Props) {
+  const time = formatTime(ms, fraction, !fraction && !overtime);
+  const [whole, decimal] = time.split('.');
+  const toggle = () => {
+    if (complete) return;
+    (isRunning ? hapticSoft : hapticMedium)();
+    onToggle();
+  };
+  const shortcut = useEffectEvent(toggle);
   useEffect(() => {
-    if (textRef.current) {
-        const { width, height } = textRef.current.getBoundingClientRect();
-        setTextSize({ width, height });
+    function onKey(event: KeyboardEvent) {
+      if (
+        event.code !== 'Space' ||
+        event.repeat ||
+        event.altKey ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        !(event.target === document.body || event.target === document.documentElement)
+      )
+        return;
+      event.preventDefault();
+      shortcut();
     }
-  }, [hasHours, hasMs]); // Recalculate when layout might change significantly
-
-  /* We re-measure the viewport to keep the timer responsive when laptops resize or rotate.
-     The resize handler is light-weight and cancels on cleanup to avoid memory leaks. */
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const updateViewport = () => {
-      setViewportSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-    updateViewport();
-    window.addEventListener('resize', updateViewport);
-    window.addEventListener('orientationchange', updateViewport);
-    return () => {
-      window.removeEventListener('resize', updateViewport);
-      window.removeEventListener('orientationchange', updateViewport);
-    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
-
-  const ringPadding = 60; // Space between text and ring
-  const minRingSize = 320;
-  
-  // Approximate width based on character count if measurement lags (SSR/initial)
-  // 00:00 = 5 chars. 00:00:00 = 8 chars.
-  const charCount = (hasHours ? 3 : 0) + 5 + (hasMs ? 3 : 0);
-  const approxWidth = charCount * 35; // Rough guess for 5xl/6xl font
-  
-  // Use measured width if available, else approximation
-  const textDrivenSize = Math.max(minRingSize, (textSize.width || approxWidth) + ringPadding * 2);
-  const widthCap = viewportSize.width ? Math.max(220, viewportSize.width * 0.8) : textDrivenSize;
-  const heightCap = viewportSize.height ? Math.max(220, viewportSize.height - 220) : textDrivenSize;
-  const targetSize = Math.max(220, Math.min(textDrivenSize, widthCap, heightCap));
-  
   return (
-      <div 
-          className="relative flex flex-col items-center justify-center w-full max-w-xl mx-auto transition-all duration-300 ease-out px-2"
-          style={{ minHeight: targetSize + 40, marginTop: 'clamp(1rem,4vh,2.5rem)', marginBottom: 'clamp(1rem,4vh,2.5rem)' }} 
-      >
-      {/* Ring Container - Absolute centered but sized to content */}
-      <div 
-        className="absolute inset-0 flex items-center justify-center transition-all duration-300 ease-out"
-      >
-        <ProgressRing 
-            progress={progress} 
-            size={targetSize} 
-            strokeWidth={12} 
-            color={ringColor} 
-        />
-      </div>
-      
-      <div 
-        ref={textRef}
-        className={clsx(
-        "z-10 font-mono font-bold tabular-nums flex items-baseline justify-center leading-none select-none relative",
-        overtime ? "text-bauhaus-red" : "text-foreground",
-        // Adjust font size based on complexity to keep it fitting well
-        hasHours ? "text-5xl md:text-6xl" : (showMs ? "text-6xl md:text-7xl" : "text-7xl md:text-8xl")
-      )}>
-        {overtime && <span className="mr-2 text-4xl self-center">+</span>}
-        
-        {hasHours && (
-            <>
-                <Digit value={pad(hours)[0]} />
-                <Digit value={pad(hours)[1]} />
-                <span className="mx-0.5 opacity-50">:</span>
-            </>
-        )}
-        
-        <Digit value={pad(minutes)[0]} />
-        <Digit value={pad(minutes)[1]} />
-        
-        <span className="mx-0.5 opacity-50">:</span>
-        
-        <Digit value={pad(seconds)[0]} />
-        <Digit value={pad(seconds)[1]} />
-        
-        {showMs && (
-          <>
-            <span className="mx-1 text-4xl opacity-50 self-end mb-2">.</span>
-            <div className="text-4xl opacity-80 flex self-end mb-2">
-               <Digit value={pad(centiseconds)[0]} fast />
-               <Digit value={pad(centiseconds)[1]} fast />
+    <section className="instrument" aria-label={label}>
+      <div className="face" data-running={isRunning}>
+        <div className="face-body">
+          <h2 className="face-title">{label}</h2>
+          <div className="readout-wrap">
+            <div
+              className="readout"
+              role="timer"
+              aria-live="off"
+              style={
+                { '--time-chars': whole.length + (decimal ? 1.6 : 0) + (overtime ? 0.6 : 0) } as CSSProperties
+              }
+            >
+              {overtime && <small>+</small>}
+              {whole.slice(0, -2)}
+              <span className="seconds" key={whole}>
+                {whole.slice(-2)}
+              </span>
+              {decimal && <small>.{decimal}</small>}
             </div>
-          </>
-        )}
+          </div>
+          <div className="status" data-active={isRunning} data-alert={overtime} role="status">
+            <i aria-hidden="true" />
+            {status}
+          </div>
+          <div className="actions">
+            <button
+              type="button"
+              className="primary"
+              onClick={toggle}
+              disabled={complete}
+              aria-keyshortcuts="Space"
+            >
+              {isRunning ? <Pause /> : <Play />}
+              {isRunning ? 'Pause' : complete ? 'Done' : elapsed ? 'Resume' : 'Start'}
+              <kbd aria-hidden="true">Space</kbd>
+            </button>
+            <button
+              type="button"
+              className="secondary"
+              disabled={!elapsed && !isRunning}
+              onClick={() => {
+                hapticWarning();
+                onReset();
+              }}
+            >
+              <RotateCcw />
+              Reset
+            </button>
+            {onLap && (
+              <button
+                type="button"
+                className="secondary"
+                disabled={!isRunning}
+                onClick={() => {
+                  hapticRigid();
+                  onLap();
+                }}
+              >
+                <Flag />
+                Lap
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="dial-well">
+          <Dial key={label} value={unit === 'min' ? ms / 60000 : Math.floor(ms / 1000)} unit={unit} />
+        </div>
+        <div className="progress-track" aria-hidden="true">
+          <span style={{ transform: `scaleX(${Math.max(0, Math.min(1, progress))})` }} />
+        </div>
       </div>
-    </div>
+      {children}
+    </section>
   );
 }

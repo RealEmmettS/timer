@@ -1,48 +1,32 @@
-'use client';
-
-import { motion } from 'framer-motion';
-import { clsx } from 'clsx';
+import { Hourglass, Repeat2, Timer } from 'lucide-react';
 import { hapticSelection } from '@/utils/haptics';
 
-type Mode = 'countdown' | 'stopwatch' | 'interval';
+const modes = [
+  { id: 'countdown', label: 'Countdown', icon: Hourglass },
+  { id: 'stopwatch', label: 'Stopwatch', icon: Timer },
+  { id: 'interval', label: 'Interval', icon: Repeat2 },
+] as const;
+export type Mode = (typeof modes)[number]['id'];
 
-interface ModeSwitcherProps {
-  activeMode: Mode;
-  onChange: (mode: Mode) => void;
-}
-
-export function ModeSwitcher({ activeMode, onChange }: ModeSwitcherProps) {
-  const modes: { id: Mode; label: string }[] = [
-    { id: 'countdown', label: 'Countdown' },
-    { id: 'stopwatch', label: 'Stopwatch' },
-    { id: 'interval', label: 'Interval' },
-  ];
-
+export function ModeSwitcher({ activeMode, onChange }: { activeMode: Mode; onChange: (mode: Mode) => void }) {
   return (
-    <div className="flex p-1 space-x-1 bg-background border-2 border-foreground bauhaus-shadow rounded-none">
-      {modes.map((mode) => (
+    <div className="mode-bar" role="group" aria-label="Timer mode">
+      {modes.map(({ id, label, icon: Icon }) => (
         <button
-          key={mode.id}
-          onClick={() => { hapticSelection(); onChange(mode.id); }}
-          className={clsx(
-            "relative px-2 sm:px-4 py-2 text-xs sm:text-sm font-bold uppercase tracking-wide transition-colors z-10 outline-none focus-visible:ring-2",
-            activeMode === mode.id ? "text-background" : "text-foreground hover:text-foreground/70"
-          )}
-          style={{
-             WebkitTapHighlightColor: "transparent",
+          key={id}
+          type="button"
+          aria-pressed={id === activeMode}
+          onClick={() => {
+            if (id !== activeMode) {
+              hapticSelection();
+              onChange(id);
+            }
           }}
         >
-          {activeMode === mode.id && (
-            <motion.div
-              layoutId="activeModeTab"
-              className="absolute inset-0 bg-foreground -z-10"
-              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-            />
-          )}
-          {mode.label}
+          <Icon aria-hidden="true" size={17} />
+          {label}
         </button>
       ))}
     </div>
   );
 }
-
