@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTimerEngine } from '@/hooks/useTimerEngine';
 import { TimerDisplay } from '@/components/TimerDisplay';
-import { NumberField } from '@/components/shared/NumberField';
+import { DurationField, toMilliseconds, type Duration } from '@/components/shared/DurationField';
 import { playComplete, prepareAudio } from '@/utils/audio';
 import { hapticSelection, hapticSuccess } from '@/utils/haptics';
 
 export default function CountdownView({ active, sound }: { active: boolean; sound: boolean }) {
   const clock = useTimerEngine();
-  const [duration, setDuration] = useState(300000);
+  const [setting, setSetting] = useState<Duration>({ amount: 5, unit: 'min' });
+  const duration = toMilliseconds(setting);
+  const unitName = { sec: 'second', min: 'minute', hr: 'hour' }[setting.unit];
   const remaining = duration - clock.elapsed;
   const signaled = useRef(false);
   useEffect(() => {
@@ -48,16 +50,8 @@ export default function CountdownView({ active, sound }: { active: boolean; soun
       }}
       onReset={clock.reset}
     >
-      <div className="settings">
-        <NumberField
-          label="Duration"
-          unit="min"
-          value={duration / 60000}
-          min={0}
-          step="any"
-          disabled={clock.isRunning}
-          onChange={(n) => setDuration(Math.round(n * 60000))}
-        />
+      <div className="settings countdown-settings">
+        <DurationField label="Duration" duration={setting} disabled={clock.isRunning} onChange={setSetting} />
         <div className="adjust">
           <span className="setting-label">Quick adjust</span>
           <div className="steps">
@@ -66,14 +60,21 @@ export default function CountdownView({ active, sound }: { active: boolean; soun
                 type="button"
                 key={n}
                 disabled={clock.isRunning || (!duration && n < 0)}
-                aria-label={`${n < 0 ? 'Subtract' : 'Add'} ${Math.abs(n)} ${Math.abs(n) === 1 ? 'minute' : 'minutes'}`}
+                aria-label={`${n < 0 ? 'Subtract' : 'Add'} ${Math.abs(n)} ${unitName}${Math.abs(n) === 1 ? '' : 's'}`}
                 onClick={() => {
                   hapticSelection();
-                  setDuration((current) => Math.max(0, current + n * 60000));
+                  setSetting((current) => {
+                    const ms = toMilliseconds(current);
+                    const stepMs = toMilliseconds({ amount: 1, unit: current.unit });
+                    const adjusted = Math.max(0, ms + n * stepMs);
+                    return Number.isSafeInteger(adjusted)
+                      ? { amount: adjusted / stepMs, unit: current.unit }
+                      : current;
+                  });
                 }}
               >
                 {n < 0 ? '−' : '+'}
-                {Math.abs(n)} min
+                {Math.abs(n)} {setting.unit}
               </button>
             ))}
           </div>

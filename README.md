@@ -2,7 +2,8 @@
 
 A countdown, stopwatch, and interval timer for the browser. Each mode keeps its time when you switch to another. The digital readout uses Geist Mono and the interface uses Makira, both hosted on the SHAUGHV CDN.
 
-- The countdown accepts fractional minutes and continues into overtime. One dial revolution covers the selected duration. Quick adjustments are available while paused.
+- In Countdown, Work, and Rest, enter a number and choose seconds, minutes, or hours, or type a shortcut like `2s`, `34m`, or `1.5h`. Press Enter or leave the field to show the number and selected unit separately.
+- The countdown continues into overtime. One dial revolution covers the selected duration. Quick adjustments use the selected unit and are available while the countdown is idle or paused.
 - The stopwatch records lap splits and cumulative times. It displays hundredths and samples the clock independently when you record a lap or pause.
 - Work and rest each accept seconds, minutes, or hours. Editing a phase previews its dial and updates the workout total across all rounds. Each phase keeps its own scale while running. The chime respects the sound control, including while another mode is open.
 - Space starts or pauses the visible timer when the page itself has focus. Timers support light and dark themes, reduced motion, and touch.
