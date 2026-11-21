@@ -23,7 +23,7 @@ export default function CountdownView({ active, sound }: { active: boolean; soun
     <TimerDisplay
       label="Time remaining"
       ms={Math.abs(remaining)}
-      unit="min"
+      dialDuration={duration}
       progress={duration ? remaining / duration : 0}
       elapsed={clock.elapsed}
       isRunning={clock.isRunning}
