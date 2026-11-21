@@ -1,4 +1,12 @@
-import { memo, useState, type CSSProperties } from 'react';
+import {
+  memo,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Ref,
+} from 'react';
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -157,26 +165,64 @@ const ScalePlate = memo(function ScalePlate({ span }: { span: number }) {
   );
 });
 
+export type DialHandle = { prepareReset: (direction: 'clockwise' | 'counterclockwise') => void };
+
 export const Dial = memo(function Dial({
+  ref,
   ms,
   duration,
   phase,
+  atStart,
 }: {
+  ref: Ref<DialHandle>;
   ms: number;
   duration?: number;
   phase: string;
+  atStart: boolean;
 }) {
   const adaptive = duration !== undefined;
   const span = duration || MINUTE; // A zero-duration countdown starts directly in overtime.
   const angle = (ms / span) * 360;
+  const needle = useRef<SVGPathElement>(null);
+  const hand = useRef<SVGGElement>(null);
+  const rewindFrom = useRef<number | null>(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      prepareReset(direction) {
+        // Sample the painted angle before reset changes the time or replaces the interval phase.
+        const pose = needle.current?.getCTM();
+        if (!pose) return;
+        const degrees = ((Math.atan2(pose.b, pose.a) * 180) / Math.PI + 360) % 360;
+        const atHome = Math.min(degrees, 360 - degrees) < 0.01;
+        const from = direction === 'clockwise' ? degrees - 360 : degrees;
+        rewindFrom.current = atHome ? 0 : from;
+      },
+    }),
+    [],
+  );
+
+  useLayoutEffect(() => {
+    const from = rewindFrom.current;
+    rewindFrom.current = null;
+    const element = hand.current;
+    if (!atStart || from === null || !element) return;
+    element.style.setProperty('--rewind-from', from + 'deg');
+    const durationMs = from === 0 ? 0 : Math.round(240 + Math.abs(from) * 1.2);
+    element.style.setProperty('--rewind-duration', durationMs + 'ms');
+    element.classList.add('dial-rewinding');
+    return () => element.classList.remove('dial-rewinding');
+  }, [atStart, span, phase]);
+
   return (
     <svg className="dial" viewBox="0 0 240 240" role={adaptive ? 'img' : undefined} aria-hidden={adaptive ? undefined : true} aria-label={adaptive ? legend(span) + ' per turn' : undefined}>
       <circle className="dial-rim" cx="120" cy="120" r="116" />
       <circle className="dial-track" cx="120" cy="120" r="89" />
       {adaptive ? <ScalePlate span={span} /> : <DialFace span={span} adaptive={false} />}
-      <g key={phase} className="dial-hand" style={{ transform: `rotate(${angle}deg)` }}>
+      <g ref={hand} key={phase} className="dial-hand" style={{ transform: `rotate(${angle}deg)` }}>
         <g key={span} className={adaptive ? 'dial-settle' : undefined}>
-          <path className="needle" d="M119 21 Q120 17 121 21 L123 133 Q120 138 117 133Z" />
+          <path ref={needle} className="needle" d="M119 21 Q120 17 121 21 L123 133 Q120 138 117 133Z" />
         </g>
       </g>
       <circle className="pin" cx="120" cy="120" r="7" />

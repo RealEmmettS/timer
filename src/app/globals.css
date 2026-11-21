@@ -215,7 +215,10 @@ button { -webkit-tap-highlight-color: transparent; }
     animation: dial-label-in 220ms ease-out var(--mark-delay, 25ms) both;
   }
   .dial-settle { animation: dial-settle 380ms cubic-bezier(.22,.65,.32,1) both; }
+  .dial-hand.dial-rewinding { animation: dial-rewind var(--rewind-duration) cubic-bezier(.32,0,.18,1); }
+  .dial-rewinding .dial-settle { animation-duration: 0s; }
 }
+@keyframes dial-rewind { from { transform: rotate(var(--rewind-from)); } to { transform: rotate(0deg); } }
 @keyframes dial-release { to { opacity: 0; transform: rotate(2deg) scale(.98); } }
 @keyframes dial-register { from { opacity: 0; transform: rotate(-5deg) scale(.97); } }
 @keyframes dial-label-in { from { opacity: 0; transform: translateY(3px); } }
