@@ -1,8 +1,8 @@
-import { useEffect, useEffectEvent, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useRef, type CSSProperties, type ReactNode } from 'react';
 import { Flag, Pause, Play, RotateCcw } from 'lucide-react';
 import { hapticMedium, hapticRigid, hapticSoft, hapticWarning } from '@/utils/haptics';
 
-import { Dial } from './Dial';
+import { Dial, type DialHandle } from './Dial';
 
 export function formatTime(ms: number, fraction = false, roundUp = false) {
   const seconds = (roundUp ? Math.ceil : Math.floor)(Math.max(0, ms) / 1000);
@@ -46,6 +46,7 @@ export function TimerDisplay({
   complete,
   children,
 }: Props) {
+  const dial = useRef<DialHandle>(null);
   const time = formatTime(ms, fraction, !fraction && !overtime);
   const [whole, decimal] = time.split('.');
   const toggle = () => {
@@ -116,6 +117,8 @@ export function TimerDisplay({
               disabled={!elapsed && !isRunning}
               onClick={() => {
                 hapticWarning();
+                const direction = dialDuration === undefined || overtime ? 'counterclockwise' : 'clockwise';
+                dial.current?.prepareReset(direction);
                 onReset();
               }}
             >
@@ -140,6 +143,8 @@ export function TimerDisplay({
         </div>
         <div className="dial-well">
           <Dial
+            ref={dial}
+            atStart={!elapsed && !isRunning}
             ms={dialDuration === undefined ? Math.floor(ms / 1000) * 1000 : ms}
             duration={dialDuration}
             phase={label}
