@@ -132,7 +132,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .number-field, .adjust { display: grid; gap: 9px; }
 .number-field > span:first-child, .setting-label, .laps thead { font: 550 10px/1.4 var(--mono); text-transform: uppercase; color: var(--quiet); letter-spacing: .11em; }
 .input-shell { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 4px; min-height: 44px; padding: 0 12px; background: var(--base); }
-.input-shell:focus-within { outline: 2px solid var(--mode-active); outline-offset: 2px; }
+.input-shell:not(.duration-shell):focus-within { outline: 2px solid var(--mode-active); outline-offset: 2px; }
 .input-shell input { width: 5ch; min-width: 0; padding: 3px 0; border: 0; outline: none; background: transparent; color: var(--text); font: 500 17px/1 var(--mono); }
 .input-shell input:focus-visible { outline: none; }
 .input-shell:has(:disabled) { opacity: .65; }
@@ -227,13 +227,20 @@ button { -webkit-tap-highlight-color: transparent; }
   gap: clamp(16px,3.8vw,48px);
 }
 .interval-settings .input-shell { padding-inline: 10px; }
-.interval-settings .input-shell:has(.unit-picker) { padding-right: 0; }
+.input-shell.duration-shell { padding: 0; }
+.duration-shell .duration-amount { flex: 1 1 0; width: 100%; min-height: 44px; padding-inline: 10px; border-radius: 3px 0 0 3px; }
+.countdown-settings .duration-shell { width: 146px; max-width: 100%; }
 .interval-settings input { width: 100%; }
 .unit-picker {
   display: inline-flex; flex: 0 0 64px; width: 64px; align-items: center; border-left: 1px solid var(--line);
   --dropdown-radius: 1px; --dropdown-space: 6px; --dropdown-width: 100%;
   --dropdown-surface: var(--surface); --dropdown-foreground: var(--text); --dropdown-accent: var(--mode-active);
   --dropdown-font: var(--mono); --dropdown-font-size: 12px;
+}
+.duration-shell .duration-amount:focus,
+.duration-shell .unit-picker :is(select, .shaughv-dropdown-trigger):focus,
+.duration-shell .unit-picker .shaughv-dropdown-trigger[aria-expanded="true"] {
+  outline: 2px solid var(--mode-active); outline-offset: -2px;
 }
 .unit-picker select { width: 100%; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: var(--text); font: 12px var(--mono); }
 .unit-picker .shaughv-dropdown { min-width: 0; }

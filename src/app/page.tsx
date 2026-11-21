@@ -3,6 +3,7 @@
 import { createElement, useState } from 'react';
 import { Moon, Sun, Volume2, VolumeX } from 'lucide-react';
 import { ModeSwitcher, type Mode } from '@/components/shared/ModeSwitcher';
+import { DurationUnitProvider } from '@/components/shared/DurationField';
 import CountdownView from '@/components/modes/CountdownView';
 import StopwatchView from '@/components/modes/StopwatchView';
 import IntervalView from '@/components/modes/IntervalView';
@@ -64,9 +65,11 @@ export default function Home() {
       </header>
       <div className="workbench">
         <ModeSwitcher activeMode={mode} onChange={setMode} />
-        <CountdownView active={mode === 'countdown'} sound={sound} />
-        <StopwatchView active={mode === 'stopwatch'} />
-        <IntervalView active={mode === 'interval'} sound={sound} />
+        <DurationUnitProvider>
+          <CountdownView active={mode === 'countdown'} sound={sound} />
+          <StopwatchView active={mode === 'stopwatch'} />
+          <IntervalView active={mode === 'interval'} sound={sound} />
+        </DurationUnitProvider>
       </div>
     </main>
   );
