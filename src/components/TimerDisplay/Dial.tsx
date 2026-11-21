@@ -12,117 +12,72 @@ const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 
-// Major/minor tick spacing, in seconds. Prefer divisions people can read as clock time.
-const timeSteps = [
-  [0.001, 0.0002],
-  [0.002, 0.0005],
-  [0.005, 0.001],
-  [0.01, 0.002],
-  [0.02, 0.005],
-  [0.05, 0.01],
-  [0.1, 0.02],
-  [0.2, 0.05],
-  [0.5, 0.1],
-  [1, 0.2],
-  [2, 0.5],
-  [5, 1],
-  [10, 2],
-  [15, 3],
-  [30, 5],
-  [60, 5],
-  [120, 15],
-  [300, 30],
-  [600, 60],
-  [900, 180],
-  [1800, 300],
-  [3600, 600],
-  [7200, 900],
-  [10800, 1800],
-  [21600, 3600],
+const watchSpans = [
+  SECOND, 6 * SECOND, 12 * SECOND, 30 * SECOND, MINUTE, 3 * MINUTE,
+  30 * MINUTE, HOUR, 2 * HOUR, 6 * HOUR, 12 * HOUR, 24 * HOUR,
 ];
 
-function tickSpacing(span: number) {
-  if (span === MINUTE) return [5000, 1000];
-  const targetSeconds = span / SECOND / 8;
-  const step = timeSteps.find(([major]) => major >= targetSeconds);
-  if (step) return step.map((seconds) => seconds * SECOND);
-  const targetHours = targetSeconds / 3600;
-  const order = 10 ** Math.floor(Math.log10(targetHours));
-  const factor = [1, 2, 5, 10].find((value) => value * order >= targetHours) ?? 10;
-  const major = factor * order * HOUR;
-  return [major, major / 5];
+function watchSpan(duration: number) {
+  if (duration === 0) return MINUTE;
+  const preset = watchSpans.find((span) => duration <= span);
+  if (preset) return preset;
+  const days = duration / (24 * HOUR);
+  const magnitude = 10 ** Math.floor(Math.log10(days));
+  const step = [1, 2, 5, 10].find((n) => n * magnitude >= days) ?? 10;
+  return step * magnitude * 24 * HOUR;
+}
+
+function faceUnits(span: number): [number, string] {
+  if (span <= SECOND) return [span, 'ms'];
+  if (span <= 3 * MINUTE) return [span / SECOND, 'sec'];
+  if (span <= 2 * HOUR) return [span / MINUTE, 'min'];
+  return [span / HOUR, 'hr'];
 }
 
 const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 
-function scaleText(span: number, value: number, major: number) {
-  if (span < SECOND) return String(Math.round(value));
-  if (span < 2 * MINUTE) return String(Number((value / SECOND).toFixed(3)));
-  const unit = span < HOUR ? MINUTE : HOUR;
-  if (value / unit >= 10000) return compact.format(value / unit);
-  if (major % unit === 0 && unit === MINUTE) return String(value / unit);
-  const whole = Math.floor(value / unit);
-  const part = Math.round(((value % unit) / unit) * 60);
-  return whole + ':' + String(part).padStart(2, '0');
+function legend(span: number) {
+  const [amount, unit] = faceUnits(span);
+  return (amount >= 10000 ? compact.format(amount) : amount) + ' ' + unit;
 }
 
-function legend(span: number) {
-  const [amount, unit]: [number, string] =
-    span < SECOND
-      ? [span, 'ms']
-      : span < 2 * MINUTE
-        ? [span / SECOND, 'sec']
-        : span < HOUR
-          ? [span / MINUTE, 'min']
-          : [span / HOUR, 'hr'];
-  return (amount >= 10000 ? compact.format(amount) : Number(amount.toFixed(3))) + ' ' + unit;
-}
+const watchMarks = Array.from({ length: 60 }, (_, i) => (
+  <line
+    key={i}
+    x1="120"
+    x2="120"
+    y1="14"
+    y2={i % 5 === 0 ? 28 : 20}
+    className={i % 5 === 0 ? 'major' : 'minor'}
+    transform={`rotate(${i * 6} 120 120)`}
+  />
+));
 
 const DialFace = memo(function DialFace({ span, adaptive }: { span: number; adaptive: boolean }) {
-  const [major, minor] = tickSpacing(span);
-  const majorEvery = Math.round(major / minor);
-  const marks = Math.ceil(span / minor);
-  const compactEvery = adaptive ? Math.ceil(span / major / 5.5) : 3;
+  const [total, unit] = faceUnits(span);
   const labels = [];
-  const ticks = [];
-  for (let i = 0; i < marks; i++) {
-    const value = i * minor;
-    const angle = (value / span) * 360;
-    const isMajor = i % majorEvery === 0;
-    // An odd duration can put the last tick almost on top of zero.
-    if (360 - angle < 2) break;
-    ticks.push(
-      <line
-        key={i}
-        x1="120"
-        x2="120"
-        y1="14"
-        y2={isMajor ? 28 : 20}
-        className={isMajor ? 'major' : 'minor'}
-        transform={`rotate(${angle} 120 120)`}
-      />,
-    );
-    if (!isMajor || 360 - angle < 25) continue;
-    const index = i / majorEvery;
-    const compactLabel = index % compactEvery === 0 && 360 - angle >= 50;
-    const a = (angle * Math.PI) / 180;
-    const label = adaptive ? scaleText(span, value, major) : String(value / SECOND).padStart(2, '0');
-    const radius = label.length > 3 ? 69 : 77;
+  for (let i = 0; i < 12; i++) {
+    const value = (total * i) / 12;
+    // On a half-hour face, label every five minutes and leave the half steps as hour marks.
+    if (!Number.isInteger(value)) continue;
+    const label = value >= 10000 ? compact.format(value) : String(value);
+    const text = (unit === 'min' || unit === 'sec') && total === 60 ? label.padStart(2, '0') : label;
+    const radians = i * Math.PI / 6;
     labels.push(
       <text
         key={i}
-        className={compactLabel ? 'dial-quarter' : 'dial-subdivision'}
-        style={adaptive ? ({ '--mark-delay': index * 9 + 'ms' } as CSSProperties) : undefined}
-        x={(120 + Math.sin(a) * radius).toFixed(2)}
-        y={(120 - Math.cos(a) * radius).toFixed(2)}
+        className={i % 3 === 0 ? 'dial-quarter' : 'dial-subdivision'}
+        style={adaptive ? ({ '--mark-delay': i * 9 + 'ms' } as CSSProperties) : undefined}
+        x={(120 + Math.sin(radians) * 77).toFixed(2)}
+        y={(120 - Math.cos(radians) * 77).toFixed(2)}
       >
-        {label}
+        {text}
       </text>,
     );
   }
   return (
     <g className="dial-face">
-      <g className="dial-marks">{ticks}</g>
+      <g className="dial-marks">{watchMarks}</g>
       <g className="dial-labels">{labels}</g>
       <text className="dial-unit" x="120" y={adaptive ? 150 : 157}>
         {adaptive ? legend(span) : 'sec'}
@@ -181,11 +136,12 @@ export const Dial = memo(function Dial({
   atStart: boolean;
 }) {
   const adaptive = duration !== undefined;
-  const span = duration || MINUTE; // A zero-duration countdown starts directly in overtime.
+  const span = duration === undefined ? MINUTE : watchSpan(duration);
   const angle = (ms / span) * 360;
   const needle = useRef<SVGPathElement>(null);
   const hand = useRef<SVGGElement>(null);
-  const rewindFrom = useRef<number | null>(null);
+  const resetAngle = atStart ? angle : null;
+  const rewind = useRef<{ degrees: number; clockwise: boolean } | null>(null);
 
   useImperativeHandle(
     ref,
@@ -195,25 +151,27 @@ export const Dial = memo(function Dial({
         const pose = needle.current?.getCTM();
         if (!pose) return;
         const degrees = ((Math.atan2(pose.b, pose.a) * 180) / Math.PI + 360) % 360;
-        const atHome = Math.min(degrees, 360 - degrees) < 0.01;
-        const from = direction === 'clockwise' ? degrees - 360 : degrees;
-        rewindFrom.current = atHome ? 0 : from;
+        rewind.current = { degrees, clockwise: direction === 'clockwise' };
       },
     }),
     [],
   );
 
   useLayoutEffect(() => {
-    const from = rewindFrom.current;
-    rewindFrom.current = null;
+    const pose = rewind.current;
+    rewind.current = null;
     const element = hand.current;
-    if (!atStart || from === null || !element) return;
-    element.style.setProperty('--rewind-from', from + 'deg');
-    const durationMs = from === 0 ? 0 : Math.round(240 + Math.abs(from) * 1.2);
+    if (resetAngle === null || !pose || !element) return;
+    const distance = (pose.degrees - resetAngle + 360) % 360;
+    const atTarget = Math.min(distance, 360 - distance) < 0.01;
+    const offset = atTarget ? 0 : pose.clockwise ? distance - 360 : distance;
+    element.style.setProperty('--rewind-from', resetAngle + offset + 'deg');
+    element.style.setProperty('--rewind-to', resetAngle + 'deg');
+    const durationMs = offset === 0 ? 0 : Math.round(240 + Math.abs(offset) * 1.2);
     element.style.setProperty('--rewind-duration', durationMs + 'ms');
     element.classList.add('dial-rewinding');
     return () => element.classList.remove('dial-rewinding');
-  }, [atStart, span, phase]);
+  }, [resetAngle, span, phase]);
 
   return (
     <svg className="dial" viewBox="0 0 240 240" role={adaptive ? 'img' : undefined} aria-hidden={adaptive ? undefined : true} aria-label={adaptive ? legend(span) + ' per turn' : undefined}>
