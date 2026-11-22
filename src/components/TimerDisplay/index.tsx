@@ -151,6 +151,7 @@ export function TimerDisplay({
         <div className="dial-well">
           <Dial
             ref={dial}
+            running={isRunning}
             atStart={!elapsed && !isRunning}
             ms={dialDuration === undefined ? Math.floor(ms / 1000) * 1000 : ms}
             duration={dialDuration}
