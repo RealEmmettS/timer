@@ -2,7 +2,7 @@ import { useEffect, useEffectEvent, useRef, type CSSProperties, type ReactNode }
 import { Flag, Pause, Play, RotateCcw } from 'lucide-react';
 import { hapticMedium, hapticRigid, hapticSoft, hapticWarning } from '@/utils/haptics';
 
-import { Dial, type DialHandle } from './Dial';
+import { Dial, type DialHandle, type IntervalBeat } from './Dial';
 
 export function formatTime(ms: number, fraction = false, roundUp = false) {
   const seconds = (roundUp ? Math.ceil : Math.floor)(Math.max(0, ms) / 1000);
@@ -23,6 +23,7 @@ type Props = {
   onReset: () => void;
   onLap?: () => void;
   dialDuration?: number;
+  interval?: IntervalBeat;
   progress: number;
   fraction?: boolean;
   overtime?: boolean;
@@ -40,6 +41,7 @@ export function TimerDisplay({
   onReset,
   onLap,
   dialDuration,
+  interval,
   progress,
   fraction,
   overtime,
@@ -152,7 +154,7 @@ export function TimerDisplay({
             atStart={!elapsed && !isRunning}
             ms={dialDuration === undefined ? Math.floor(ms / 1000) * 1000 : ms}
             duration={dialDuration}
-            phase={label}
+            interval={interval}
           />
         </div>
         <div className="progress-track" aria-hidden="true">
