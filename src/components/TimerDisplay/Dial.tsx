@@ -1,5 +1,6 @@
 import {
   memo,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -13,8 +14,18 @@ const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 
 const watchSpans = [
-  SECOND, 6 * SECOND, 12 * SECOND, 30 * SECOND, MINUTE, 3 * MINUTE,
-  30 * MINUTE, HOUR, 2 * HOUR, 6 * HOUR, 12 * HOUR, 24 * HOUR,
+  SECOND,
+  6 * SECOND,
+  12 * SECOND,
+  30 * SECOND,
+  MINUTE,
+  3 * MINUTE,
+  30 * MINUTE,
+  HOUR,
+  2 * HOUR,
+  6 * HOUR,
+  12 * HOUR,
+  24 * HOUR,
 ];
 
 function watchSpan(duration: number) {
@@ -53,35 +64,113 @@ const watchMarks = Array.from({ length: 60 }, (_, i) => (
   />
 ));
 
-const DialFace = memo(function DialFace({ span, adaptive }: { span: number; adaptive: boolean }) {
-  const [total, unit] = faceUnits(span);
+function numeral(span: number, hour: number) {
+  const [total] = faceUnits(span);
+  const value = (total * hour) / 12;
+  if (!Number.isInteger(value)) return '';
+  const text = value >= 10000 ? compact.format(value) : String(value);
+  return total === 60 ? text.padStart(2, '0') : text;
+}
+
+function Register({
+  value,
+  previous,
+  x,
+  y,
+  className,
+  clip,
+  step,
+  delay,
+  onSettled,
+}: {
+  value: string;
+  previous?: string;
+  x: number;
+  y: number;
+  className: string;
+  clip: string;
+  step: number;
+  delay: number;
+  onSettled?: () => void;
+}) {
+  if (!value && !previous) return null;
+  if (previous === undefined || previous === value) {
+    return (
+      <text x={x} y={y} className={className} style={{ '--mark-delay': delay + 'ms' } as CSSProperties}>
+        {value}
+      </text>
+    );
+  }
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <g clipPath={`url(#${clip})`}>
+        <g
+          key={value}
+          className="dial-roll"
+          style={{ '--roll-step': step + 'px', '--roll-delay': delay + 'ms' } as CSSProperties}
+          onAnimationEnd={onSettled}
+        >
+          {previous && (
+            <text y={-step} className={className + ' dial-old-value'} aria-hidden="true">
+              {previous}
+            </text>
+          )}
+          {value && <text className={className}>{value}</text>}
+        </g>
+      </g>
+    </g>
+  );
+}
+
+type Roll = { previous: number; step: number; onSettled: () => void };
+
+const DialFace = memo(function DialFace({
+  span,
+  adaptive,
+  roll,
+}: {
+  span: number;
+  adaptive: boolean;
+  roll?: Roll;
+}) {
+  const clip = useId();
   const labels = [];
-  for (let i = 0; i < 12; i++) {
-    const value = (total * i) / 12;
-    // On a half-hour face, label every five minutes and leave the half steps as hour marks.
-    if (!Number.isInteger(value)) continue;
-    const label = value >= 10000 ? compact.format(value) : String(value);
-    const text = (unit === 'min' || unit === 'sec') && total === 60 ? label.padStart(2, '0') : label;
-    const radians = i * Math.PI / 6;
+  for (let hour = 0; hour < 12; hour++) {
+    const radians = (hour * Math.PI) / 6;
     labels.push(
-      <text
-        key={i}
-        className={i % 3 === 0 ? 'dial-quarter' : 'dial-subdivision'}
-        style={adaptive ? ({ '--mark-delay': i * 9 + 'ms' } as CSSProperties) : undefined}
-        x={(120 + Math.sin(radians) * 77).toFixed(2)}
-        y={(120 - Math.cos(radians) * 77).toFixed(2)}
-      >
-        {text}
-      </text>,
+      <Register
+        key={hour}
+        value={numeral(span, hour)}
+        previous={roll && numeral(roll.previous, hour)}
+        className={hour % 3 === 0 ? 'dial-quarter' : 'dial-subdivision'}
+        x={Number((120 + Math.sin(radians) * 77).toFixed(2))}
+        y={Number((120 - Math.cos(radians) * 77).toFixed(2))}
+        clip={clip}
+        step={roll?.step ?? 0}
+        delay={hour * (roll ? 5 : 9)}
+      />,
     );
   }
   return (
     <g className="dial-face">
+      <defs>
+        <clipPath id={clip}>
+          <rect x="-80" y="-10" width="160" height="20" />
+        </clipPath>
+      </defs>
       <g className="dial-marks">{watchMarks}</g>
       <g className="dial-labels">{labels}</g>
-      <text className="dial-unit" x="120" y={adaptive ? 150 : 157}>
-        {adaptive ? legend(span) : 'sec'}
-      </text>
+      <Register
+        className="dial-unit"
+        value={adaptive ? legend(span) : 'sec'}
+        previous={roll && legend(roll.previous)}
+        x={120}
+        y={adaptive ? 150 : 157}
+        clip={clip}
+        step={roll?.step ?? 0}
+        delay={65}
+        onSettled={roll?.onSettled}
+      />
       {adaptive && (
         <text className="dial-per-turn" x="120" y="163">
           per turn
@@ -91,34 +180,53 @@ const DialFace = memo(function DialFace({ span, adaptive }: { span: number; adap
   );
 });
 
-const ScalePlate = memo(function ScalePlate({ span }: { span: number }) {
-  const [plate, setPlate] = useState<{ current: number; previous: number | null }>({
-    current: span,
-    previous: null,
-  });
-  if (span !== plate.current) {
+const ScalePlate = memo(function ScalePlate({
+  span,
+  phase,
+}: {
+  span: number;
+  phase?: IntervalBeat['phase'];
+}) {
+  const [plate, setPlate] = useState<{ span: number; previous: number | null }>({ span, previous: null });
+  if (span !== plate.span) {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    setPlate({ current: span, previous: reduce ? null : plate.current });
+    setPlate({ span, previous: reduce ? null : plate.span });
   }
+  const settled = () => setPlate({ span, previous: null });
+
+  if (phase) {
+    const roll =
+      plate.previous === null
+        ? undefined
+        : {
+            previous: plate.previous,
+            step: phase === 'Rest' ? -22 : 22,
+            onSettled: settled,
+          };
+    return <DialFace span={span} adaptive roll={roll} />;
+  }
+
   return (
     <>
       {plate.previous !== null && (
         <g
-          className="dial-outgoing"
           key={'out-' + plate.previous}
+          className="dial-outgoing"
           onAnimationEnd={(event) => {
-            if (event.currentTarget === event.target) setPlate({ current: span, previous: null });
+            if (event.target === event.currentTarget) settled();
           }}
         >
           <DialFace span={plate.previous} adaptive />
         </g>
       )}
-      <g className="dial-incoming" key={span}>
+      <g key={span} className="dial-incoming">
         <DialFace span={span} adaptive />
       </g>
     </>
   );
 });
+
+export type IntervalBeat = { phase: 'Work' | 'Rest'; round: number };
 
 export type DialHandle = { prepareReset: (direction: 'clockwise' | 'counterclockwise') => void };
 
@@ -126,13 +234,13 @@ export const Dial = memo(function Dial({
   ref,
   ms,
   duration,
-  phase,
+  interval,
   atStart,
 }: {
   ref: Ref<DialHandle>;
   ms: number;
   duration?: number;
-  phase: string;
+  interval?: IntervalBeat;
   atStart: boolean;
 }) {
   const adaptive = duration !== undefined;
@@ -140,6 +248,13 @@ export const Dial = memo(function Dial({
   const angle = (ms / span) * 360;
   const needle = useRef<SVGPathElement>(null);
   const hand = useRef<SVGGElement>(null);
+  const phaseKey = interval && `${interval.round}-${interval.phase}`;
+  const lastPhase = useRef(phaseKey);
+  // Matrix interpolation takes the short arc even when a phase change crosses twelve.
+  const radians = ((angle % 360) * Math.PI) / 180;
+  const transform = interval
+    ? `matrix(${Math.cos(radians)}, ${Math.sin(radians)}, ${-Math.sin(radians)}, ${Math.cos(radians)}, 0, 0)`
+    : `rotate(${angle}deg)`;
   const resetAngle = atStart ? angle : null;
   const rewind = useRef<{ degrees: number; clockwise: boolean } | null>(null);
 
@@ -158,6 +273,13 @@ export const Dial = memo(function Dial({
   );
 
   useLayoutEffect(() => {
+    if (phaseKey === undefined) return;
+    const changed = lastPhase.current !== phaseKey;
+    hand.current?.classList.toggle('dial-indexing', changed && rewind.current === null);
+    lastPhase.current = phaseKey;
+  }, [phaseKey, angle]);
+
+  useLayoutEffect(() => {
     const pose = rewind.current;
     rewind.current = null;
     const element = hand.current;
@@ -171,15 +293,25 @@ export const Dial = memo(function Dial({
     element.style.setProperty('--rewind-duration', durationMs + 'ms');
     element.classList.add('dial-rewinding');
     return () => element.classList.remove('dial-rewinding');
-  }, [resetAngle, span, phase]);
+  }, [resetAngle, span, phaseKey]);
 
   return (
-    <svg className="dial" viewBox="0 0 240 240" role={adaptive ? 'img' : undefined} aria-hidden={adaptive ? undefined : true} aria-label={adaptive ? legend(span) + ' per turn' : undefined}>
+    <svg
+      className="dial"
+      viewBox="0 0 240 240"
+      role={adaptive ? 'img' : undefined}
+      aria-hidden={adaptive ? undefined : true}
+      aria-label={adaptive ? legend(span) + ' per turn' : undefined}
+    >
       <circle className="dial-rim" cx="120" cy="120" r="116" />
       <circle className="dial-track" cx="120" cy="120" r="89" />
-      {adaptive ? <ScalePlate span={span} /> : <DialFace span={span} adaptive={false} />}
-      <g ref={hand} key={phase} className="dial-hand" style={{ transform: `rotate(${angle}deg)` }}>
-        <g key={span} className={adaptive ? 'dial-settle' : undefined}>
+      {adaptive ? (
+        <ScalePlate span={span} phase={interval?.phase} />
+      ) : (
+        <DialFace span={span} adaptive={false} />
+      )}
+      <g ref={hand} className="dial-hand" data-interval={!!interval} style={{ transform }}>
+        <g key={interval ? 'interval' : span} className={adaptive && !interval ? 'dial-settle' : undefined}>
           <path ref={needle} className="needle" d="M119 21 Q120 17 121 21 L123 133 Q120 138 117 133Z" />
         </g>
       </g>

@@ -30,7 +30,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {createElement('shaughv-mark', { 'data-static': '', 'aria-label': 'SHAUGHV', role: 'img' })}
               <span className="crest" role="img" aria-label="Shaughnessy crest" />
             </div>
-            <small>© {new Date().getFullYear()} Emmett Shaughnessy</small>
+            <div className="footer-meta">
+              <small>© {new Date().getFullYear()} Emmett Shaughnessy</small>
+              <a
+                className="repo-link"
+                href="https://github.com/RealEmmettS/timer"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Timer source on GitHub (opens in a new tab)"
+              >
+                GitHub
+              </a>
+            </div>
           </div>
         </footer>
         {createElement('shaughv-cursor', { color: 'sage' })}

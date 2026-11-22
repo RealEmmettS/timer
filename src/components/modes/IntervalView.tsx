@@ -34,7 +34,8 @@ export default function IntervalView({ active, sound }: { active: boolean; sound
   const complete = clock.elapsed >= total;
   const { isRunning, stopAt } = clock;
   const ready = !isRunning && clock.elapsed === 0;
-  const phase = ready && previewPhase === 'Rest' && restMs > 0 ? 'Rest' : isWork ? 'Work' : 'Rest';
+  const activePhase = isWork ? 'Work' : 'Rest';
+  const phase = restMs === 0 ? 'Work' : complete ? 'Rest' : ready ? previewPhase : activePhase;
   const phaseDuration = phase === 'Work' ? workMs : restMs;
   const remaining = complete ? 0 : ready ? phaseDuration : (isWork ? workMs : cycle) - inCycle;
   const previousPhase = useRef(isWork);
@@ -65,6 +66,7 @@ export default function IntervalView({ active, sound }: { active: boolean; sound
       label={complete ? 'Workout complete' : phase + ' interval'}
       ms={remaining}
       dialDuration={phaseDuration}
+      interval={{ phase, round }}
       progress={remaining / phaseDuration}
       elapsed={clock.elapsed}
       isRunning={isRunning}

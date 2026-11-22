@@ -124,7 +124,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .dial .dial-unit { font: 500 9px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
 .needle { fill: var(--orange); stroke: color-mix(in srgb, var(--orange) 78%, var(--ink)); stroke-width: .6; }
 .dial-hand { transform-origin: 120px 120px; }
-.face[data-running="true"] .dial-hand { transition: transform 140ms cubic-bezier(.18,.72,.26,1); }
+.face[data-running="true"] .dial-hand, .dial-hand[data-interval="true"] { transition: transform 140ms cubic-bezier(.18,.72,.26,1); }
 .pin { fill: var(--ink); } .pin-inner { fill: var(--orange); }
 .progress-track { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: color-mix(in srgb, var(--signal) 20%, var(--face)); }
 .progress-track span { display: block; height: 100%; background: var(--signal); transform-origin: left; }
@@ -151,6 +151,10 @@ button { -webkit-tap-highlight-color: transparent; }
 .identity-pair shaughv-mark { display: block; height: calc(64px * var(--scale)); width: calc(95px * var(--scale)); transform: translateY(calc(7px * var(--scale))); }
 .crest { width: calc(80px * var(--scale)); height: calc(100px * var(--scale)); background: currentColor; mask: url("https://cdn.shaughv.com/brand/crests/Shaughnessy-Crest-Footer.svg") center / contain no-repeat; }
 .footer-inner small { font: 11px var(--mono); color: var(--quiet); }
+.footer-meta { display: flex; align-items: center; gap: 16px; margin-inline-start: auto; }
+.repo-link { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; font: 10px var(--mono); color: var(--quiet); text-underline-offset: 3px; }
+.repo-link:hover { color: var(--text); }
+.repo-link:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; border-radius: 3px; }
 @keyframes signal-on { from { transform: scale(.65); } to { transform: scale(1); } }
 @keyframes lap-in { from { opacity: .4; transform: translateY(-3px); } }
 @media (max-width: 700px) {
@@ -214,17 +218,24 @@ button { -webkit-tap-highlight-color: transparent; }
   .dial-incoming .dial-labels text, .dial-incoming .dial-unit, .dial-incoming .dial-per-turn {
     animation: dial-label-in 220ms ease-out var(--mark-delay, 25ms) both;
   }
+  .dial-roll { animation: dial-roll 305ms cubic-bezier(.45,0,.18,1) var(--roll-delay) both; }
+  .face .dial-hand.dial-indexing:not(.dial-rewinding) {
+    transition: transform 520ms cubic-bezier(.38,-.14,.25,1.12);
+    /* Take up the slack, sweep, then catch against the new mark. */
+    transition-timing-function: linear(0, -.009 6%, -.016 12%, -.01 17%, .01 21%, .07 27%, .19 34%, .41 43%, .67 53%, .86 62%, .97 71%, 1.012 80%, 1.014 84%, 1.006 92%, 1);
+  }
   .dial-settle { animation: dial-settle 380ms cubic-bezier(.22,.65,.32,1) both; }
-  .face[data-adaptive="true"][data-ready="true"] .dial-hand:not(.dial-rewinding) { transition: transform 220ms ease-out; }
-  .dial-hand.dial-rewinding { animation: dial-rewind var(--rewind-duration) cubic-bezier(.32,0,.18,1); }
+  .face[data-adaptive="true"][data-ready="true"] .dial-hand:not(.dial-rewinding, .dial-indexing) { transition: transform 220ms ease-out; }
+  .face .dial-hand.dial-rewinding { transition: none; animation: dial-rewind var(--rewind-duration) cubic-bezier(.32,0,.18,1); }
   .dial-rewinding .dial-settle { animation-duration: 0s; }
 }
 @keyframes dial-rewind { from { transform: rotate(var(--rewind-from)); } to { transform: rotate(var(--rewind-to)); } }
+@keyframes dial-roll { from { transform: translateY(var(--roll-step)); } to { transform: translateY(0); } }
 @keyframes dial-release { to { opacity: 0; transform: rotate(2deg) scale(.98); } }
 @keyframes dial-register { from { opacity: 0; transform: rotate(-5deg) scale(.97); } }
 @keyframes dial-label-in { from { opacity: 0; transform: translateY(3px); } }
 @keyframes dial-settle { 0% { transform: rotate(-6deg); } 65% { transform: rotate(1.5deg); } 100% { transform: rotate(0deg); } }
-@media (prefers-reduced-motion: reduce) { .dial-outgoing { display: none; } }
+@media (prefers-reduced-motion: reduce) { .dial-outgoing, .dial-old-value { visibility: hidden; } }
 
 .interval-settings {
   display: grid; grid-template-columns: minmax(124px,1fr) minmax(124px,1fr) minmax(72px,.65fr) minmax(112px,1fr);
