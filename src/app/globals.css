@@ -211,31 +211,19 @@ button { -webkit-tap-highlight-color: transparent; }
 @keyframes mode-in { from { opacity: .65; transform: translateY(3px); } }
 
 .dial .dial-per-turn { font: 500 6.5px var(--mono); text-transform: uppercase; letter-spacing: .12em; }
-.dial-incoming .dial-marks, .dial-outgoing, .dial-settle { transform-origin: 120px 120px; }
 @media (prefers-reduced-motion: no-preference) {
-  .dial-outgoing { animation: dial-release 155ms ease-in both; pointer-events: none; }
-  .dial-incoming .dial-marks { animation: dial-register 320ms cubic-bezier(.2,.75,.25,1) both; }
-  .dial-incoming .dial-labels text, .dial-incoming .dial-unit, .dial-incoming .dial-per-turn {
-    animation: dial-label-in 220ms ease-out var(--mark-delay, 25ms) both;
-  }
   .dial-roll { animation: dial-roll 305ms cubic-bezier(.45,0,.18,1) var(--roll-delay) both; }
   .face .dial-hand.dial-indexing:not(.dial-rewinding) {
     transition: transform 520ms cubic-bezier(.38,-.14,.25,1.12);
     /* Take up the slack, sweep, then catch against the new mark. */
     transition-timing-function: linear(0, -.009 6%, -.016 12%, -.01 17%, .01 21%, .07 27%, .19 34%, .41 43%, .67 53%, .86 62%, .97 71%, 1.012 80%, 1.014 84%, 1.006 92%, 1);
   }
-  .dial-settle { animation: dial-settle 380ms cubic-bezier(.22,.65,.32,1) both; }
   .face[data-adaptive="true"][data-ready="true"] .dial-hand:not(.dial-rewinding, .dial-indexing) { transition: transform 220ms ease-out; }
   .face .dial-hand.dial-rewinding { transition: none; animation: dial-rewind var(--rewind-duration) cubic-bezier(.32,0,.18,1); }
-  .dial-rewinding .dial-settle { animation-duration: 0s; }
 }
 @keyframes dial-rewind { from { transform: rotate(var(--rewind-from)); } to { transform: rotate(var(--rewind-to)); } }
 @keyframes dial-roll { from { transform: translateY(var(--roll-step)); } to { transform: translateY(0); } }
-@keyframes dial-release { to { opacity: 0; transform: rotate(2deg) scale(.98); } }
-@keyframes dial-register { from { opacity: 0; transform: rotate(-5deg) scale(.97); } }
-@keyframes dial-label-in { from { opacity: 0; transform: translateY(3px); } }
-@keyframes dial-settle { 0% { transform: rotate(-6deg); } 65% { transform: rotate(1.5deg); } 100% { transform: rotate(0deg); } }
-@media (prefers-reduced-motion: reduce) { .dial-outgoing, .dial-old-value { visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .dial-old-value { visibility: hidden; } }
 
 .interval-settings {
   display: grid; grid-template-columns: minmax(124px,1fr) minmax(124px,1fr) minmax(72px,.65fr) minmax(112px,1fr);

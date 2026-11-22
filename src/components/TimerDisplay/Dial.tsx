@@ -96,7 +96,7 @@ function Register({
   if (!value && !previous) return null;
   if (previous === undefined || previous === value) {
     return (
-      <text x={x} y={y} className={className} style={{ '--mark-delay': delay + 'ms' } as CSSProperties}>
+      <text x={x} y={y} className={className}>
         {value}
       </text>
     );
@@ -147,7 +147,7 @@ const DialFace = memo(function DialFace({
         y={Number((120 - Math.cos(radians) * 77).toFixed(2))}
         clip={clip}
         step={roll?.step ?? 0}
-        delay={hour * (roll ? 5 : 9)}
+        delay={hour * 5}
       />,
     );
   }
@@ -192,38 +192,14 @@ const ScalePlate = memo(function ScalePlate({
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     setPlate({ span, previous: reduce ? null : plate.span });
   }
-  const settled = () => setPlate({ span, previous: null });
-
-  if (phase) {
-    const roll =
-      plate.previous === null
-        ? undefined
-        : {
-            previous: plate.previous,
-            step: phase === 'Rest' ? -22 : 22,
-            onSettled: settled,
-          };
-    return <DialFace span={span} adaptive roll={roll} />;
-  }
-
-  return (
-    <>
-      {plate.previous !== null && (
-        <g
-          key={'out-' + plate.previous}
-          className="dial-outgoing"
-          onAnimationEnd={(event) => {
-            if (event.target === event.currentTarget) settled();
-          }}
-        >
-          <DialFace span={plate.previous} adaptive />
-        </g>
-      )}
-      <g key={span} className="dial-incoming">
-        <DialFace span={span} adaptive />
-      </g>
-    </>
-  );
+  if (plate.previous === null) return <DialFace span={span} adaptive />;
+  const rollsDown = phase ? phase === 'Rest' : span < plate.previous;
+  const roll = {
+    previous: plate.previous,
+    step: rollsDown ? -22 : 22,
+    onSettled: () => setPlate({ span, previous: null }),
+  };
+  return <DialFace span={span} adaptive roll={roll} />;
 });
 
 export type IntervalBeat = { phase: 'Work' | 'Rest'; round: number };
@@ -236,23 +212,24 @@ export const Dial = memo(function Dial({
   duration,
   interval,
   atStart,
+  running,
 }: {
   ref: Ref<DialHandle>;
   ms: number;
   duration?: number;
   interval?: IntervalBeat;
   atStart: boolean;
+  running: boolean;
 }) {
   const adaptive = duration !== undefined;
   const span = duration === undefined ? MINUTE : watchSpan(duration);
   const angle = (ms / span) * 360;
-  const needle = useRef<SVGPathElement>(null);
   const hand = useRef<SVGGElement>(null);
-  const phaseKey = interval && `${interval.round}-${interval.phase}`;
-  const lastPhase = useRef(phaseKey);
-  // Matrix interpolation takes the short arc even when a phase change crosses twelve.
+  const settingKey = interval ? `${interval.round}-${interval.phase}` : duration;
+  const lastSetting = useRef(settingKey);
+  // Use the short arc for edits and phase changes. Keep full turns when counting overtime.
   const radians = ((angle % 360) * Math.PI) / 180;
-  const transform = interval
+  const transform = interval || (adaptive && !running)
     ? `matrix(${Math.cos(radians)}, ${Math.sin(radians)}, ${-Math.sin(radians)}, ${Math.cos(radians)}, 0, 0)`
     : `rotate(${angle}deg)`;
   const resetAngle = atStart ? angle : null;
@@ -262,8 +239,8 @@ export const Dial = memo(function Dial({
     ref,
     () => ({
       prepareReset(direction) {
-        // Sample the painted angle before reset changes the time or replaces the interval phase.
-        const pose = needle.current?.getCTM();
+        // Sample the painted angle so Reset can interrupt an in-flight sweep.
+        const pose = hand.current?.getCTM();
         if (!pose) return;
         const degrees = ((Math.atan2(pose.b, pose.a) * 180) / Math.PI + 360) % 360;
         rewind.current = { degrees, clockwise: direction === 'clockwise' };
@@ -273,11 +250,11 @@ export const Dial = memo(function Dial({
   );
 
   useLayoutEffect(() => {
-    if (phaseKey === undefined) return;
-    const changed = lastPhase.current !== phaseKey;
+    if (settingKey === undefined) return;
+    const changed = lastSetting.current !== settingKey;
     hand.current?.classList.toggle('dial-indexing', changed && rewind.current === null);
-    lastPhase.current = phaseKey;
-  }, [phaseKey, angle]);
+    lastSetting.current = settingKey;
+  }, [settingKey, angle, running]);
 
   useLayoutEffect(() => {
     const pose = rewind.current;
@@ -293,7 +270,7 @@ export const Dial = memo(function Dial({
     element.style.setProperty('--rewind-duration', durationMs + 'ms');
     element.classList.add('dial-rewinding');
     return () => element.classList.remove('dial-rewinding');
-  }, [resetAngle, span, phaseKey]);
+  }, [resetAngle, settingKey, span]);
 
   return (
     <svg
@@ -311,9 +288,7 @@ export const Dial = memo(function Dial({
         <DialFace span={span} adaptive={false} />
       )}
       <g ref={hand} className="dial-hand" data-interval={!!interval} style={{ transform }}>
-        <g key={interval ? 'interval' : span} className={adaptive && !interval ? 'dial-settle' : undefined}>
-          <path ref={needle} className="needle" d="M119 21 Q120 17 121 21 L123 133 Q120 138 117 133Z" />
-        </g>
+        <path className="needle" d="M119 21 Q120 17 121 21 L123 133 Q120 138 117 133Z" />
       </g>
       <circle className="pin" cx="120" cy="120" r="7" />
       <circle className="pin-inner" cx="120" cy="120" r="2.5" />
