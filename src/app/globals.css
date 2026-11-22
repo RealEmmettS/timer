@@ -151,6 +151,10 @@ button { -webkit-tap-highlight-color: transparent; }
 .identity-pair shaughv-mark { display: block; height: calc(64px * var(--scale)); width: calc(95px * var(--scale)); transform: translateY(calc(7px * var(--scale))); }
 .crest { width: calc(80px * var(--scale)); height: calc(100px * var(--scale)); background: currentColor; mask: url("https://cdn.shaughv.com/brand/crests/Shaughnessy-Crest-Footer.svg") center / contain no-repeat; }
 .footer-inner small { font: 11px var(--mono); color: var(--quiet); }
+.footer-meta { display: flex; align-items: center; gap: 16px; margin-inline-start: auto; }
+.repo-link { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; font: 10px var(--mono); color: var(--quiet); text-underline-offset: 3px; }
+.repo-link:hover { color: var(--text); }
+.repo-link:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; border-radius: 3px; }
 @keyframes signal-on { from { transform: scale(.65); } to { transform: scale(1); } }
 @keyframes lap-in { from { opacity: .4; transform: translateY(-3px); } }
 @media (max-width: 700px) {

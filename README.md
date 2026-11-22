@@ -21,4 +21,4 @@ The dial, buttons, and lap list use short CSS transitions. The pointer-driven gr
 
 ## License
 
-MIT
+The timer's source code is licensed under the [MIT License](LICENSE). Third-party fonts and other third-party assets retain their respective licenses.
